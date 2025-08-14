@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الزبائن - دفتر زبائن اللبن</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 44px;
+            white-space: nowrap;
+        }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .btn-green:hover { background: linear-gradient(135deg, #16a34a, #15803d); }
+        .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-red:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        
+        .input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+        }
+        
+        /* تحسين تصميم المودال للتخطيط المتجاوب */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+        
+        .loading {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* تحسين التخطيط المتجاوب */
+        @media (max-width: 640px) {
+            .modal-content {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            .btn {
+                padding: 0.875rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <!-- تحسين التخطيط العام والحاوي الرئيسي -->
+    <div class="min-h-screen flex flex-col">
+        <div class="flex-1 p-4 sm:p-6 lg:p-8">
+            <div class="max-w-6xl mx-auto">
+                <!-- الهيدر -->
+                <!-- تحسين تخطيط الهيدر للشاشات الصغيرة -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8">
+                    <button onclick="navigateTo('index.html')" class="btn btn-secondary self-start">
+                        <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                        العودة للرئيسية
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="users" class="h-6 w-6 text-white"></i>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">إدارة الزبائن</h1>
+                    </div>
+                </div>
+
+                <!-- إضافة زبون جديد -->
+                <div class="card mb-6 sm:mb-8">
+                    <div class="p-6 sm:p-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                            <i data-lucide="plus" class="h-5 w-5 text-green-600"></i>
+                            إضافة زبون جديد
+                        </h3>
+                        <button onclick="openAddModal()" class="btn btn-green">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            إضافة زبون
+                        </button>
+                    </div>
+                </div>
+
+                <!-- قائمة الزبائن -->
+                <div class="card">
+                    <div class="p-6 sm:p-8">
+                        <h3 class="text-xl font-semibold mb-6" id="customersTitle">قائمة الزبائن</h3>
+                        <div id="customersContainer">
+                            <div class="text-center py-12 text-gray-500">
+                                <div class="loading mx-auto mb-4"></div>
+                                <p>جاري تحميل الزبائن...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal إضافة زبون -->
+    <div id="addModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold mb-6 text-center">إضافة زبون جديد</h3>
+            <form id="addForm" onsubmit="handleAddCustomer(event)">
+                <div class="space-y-6">
+                    <div>
+                        <label for="addName" class="block text-sm font-medium mb-2">اسم الزبون</label>
+                        <input type="text" id="addName" class="input" placeholder="أدخل اسم الزبون" required>
+                    </div>
+                    <!-- تحسين تخطيط حقول الأسعار للشاشات الصغيرة -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="addBuffaloPrice" class="block text-sm font-medium mb-2">سعر كيلو الجاموسي</label>
+                            <input type="number" id="addBuffaloPrice" class="input" step="0.25" min="0" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="addCowPrice" class="block text-sm font-medium mb-2">سعر كيلو البقري</label>
+                            <input type="number" id="addCowPrice" class="input" step="0.25" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    <!-- تحسين تخطيط أزرار المودال -->
+                    <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                        <button type="submit" class="btn btn-primary flex-1" id="addSubmitBtn">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            إضافة
+                        </button>
+                        <button type="button" onclick="closeAddModal()" class="btn btn-secondary flex-1">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal تعديل زبون -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 class="text-xl font-semibold mb-6 text-center">تعديل الزبون</h3>
+            <form id="editForm" onsubmit="handleEditCustomer(event)">
+                <input type="hidden" id="editId">
+                <div class="space-y-6">
+                    <div>
+                        <label for="editName" class="block text-sm font-medium mb-2">اسم الزبون</label>
+                        <input type="text" id="editName" class="input" placeholder="أدخل اسم الزبون" required>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="editBuffaloPrice" class="block text-sm font-medium mb-2">سعر كيلو الجاموسي</label>
+                            <input type="number" id="editBuffaloPrice" class="input" step="0.25" min="0" placeholder="0">
+                        </div>
+                        <div>
+                            <label for="editCowPrice" class="block text-sm font-medium mb-2">سعر كيلو البقري</label>
+                            <input type="number" id="editCowPrice" class="input" step="0.25" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                        <button type="submit" class="btn btn-primary flex-1" id="editSubmitBtn">
+                            <i data-lucide="save" class="h-4 w-4"></i>
+                            حفظ
+                        </button>
+                        <button type="button" onclick="closeEditModal()" class="btn btn-secondary flex-1">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                            إلغاء
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal تأكيد الحذف -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="trash-2" class="h-8 w-8 text-red-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-4">تأكيد الحذف</h3>
+                <p class="text-gray-600 mb-6">
+                    هل أنت متأكد من حذف الزبون "<span id="deleteCustomerName" class="font-semibold"></span>"؟
+                    <br>
+                    <span class="text-sm text-red-600">سيتم حذف جميع البيانات المرتبطة بهذا الزبون.</span>
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="confirmDelete()" class="btn btn-red flex-1" id="deleteConfirmBtn">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        حذف
+                    </button>
+                    <button onclick="closeDeleteModal()" class="btn btn-secondary flex-1">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let customers = [];
+        let customerToDelete = null;
+
+        // Navigation function
+        function navigateTo(url) {
+            window.location.href = url;
+        }
+
+        // تحميل الزبائن عند بداية الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            lucide.createIcons();
+            await loadCustomers();
+        });
+
+        // تحميل قائمة الزبائن
+        async function loadCustomers() {
+            try {
+                customers = await api.getCustomers();
+                renderCustomers();
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                showNotification('خطأ في تحميل الزبائن', 'error');
+                document.getElementById('customersContainer').innerHTML = `
+                    <div class="text-center py-12 text-red-500">
+                        <i data-lucide="alert-circle" class="h-12 w-12 mx-auto mb-4"></i>
+                        <p class="mb-4">خطأ في تحميل الزبائن</p>
+                        <button onclick="loadCustomers()" class="btn btn-primary">إعادة المحاولة</button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        // عرض قائمة الزبائن
+        function renderCustomers() {
+            const container = document.getElementById('customersContainer');
+            const title = document.getElementById('customersTitle');
+            
+            title.textContent = `قائمة الزبائن (${customers.length})`;
+
+            if (customers.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i data-lucide="users" class="h-16 w-16 mx-auto mb-4 opacity-50"></i>
+                        <h4 class="text-lg font-semibold mb-2">لا يوجد زبائن مسجلين</h4>
+                        <p class="text-sm mb-4">اضغط على "إضافة زبون" لبدء إضافة الزبائن</p>
+                        <button onclick="openAddModal()" class="btn btn-green">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            إضافة أول زبون
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            const customersHtml = customers.map((customer, index) => `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 bg-white rounded-lg border hover:shadow-md transition-all duration-200 mb-4">
+                    <div class="flex items-center gap-4 mb-4 sm:mb-0">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center text-green-600 font-bold text-sm">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 text-lg">${customer.name}</h4>
+                            <div class="text-sm text-gray-500 mt-1">
+                                <span class="inline-flex items-center gap-1">
+                                    <i data-lucide="circle" class="h-3 w-3 fill-orange-500 text-orange-500"></i>
+                                    جاموسي: ${customer.buffaloPrice} ج
+                                </span>
+                                <span class="mx-2">•</span>
+                                <span class="inline-flex items-center gap-1">
+                                    <i data-lucide="circle" class="h-3 w-3 fill-blue-500 text-blue-500"></i>
+                                    بقري: ${customer.cowPrice} ج
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 self-end sm:self-center">
+                        <button onclick="openEditModal('${customer.id}')" class="btn btn-secondary p-3" title="تعديل">
+                            <i data-lucide="edit" class="h-4 w-4"></i>
+                        </button>
+                        <button onclick="openDeleteModal('${customer.id}', '${customer.name}')" class="btn btn-secondary p-3 text-red-600 hover:text-red-700 hover:bg-red-50" title="حذف">
+                            <i data-lucide="trash-2" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `<div class="space-y-0">${customersHtml}</div>`;
+            lucide.createIcons();
+        }
+
+        // فتح modal إضافة زبون
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('addName').focus(), 100);
+        }
+
+        // إغلاق modal إضافة زبون
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('addForm').reset();
+        }
+
+        // معالجة إضافة زبون جديد
+        async function handleAddCustomer(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('addName').value.trim();
+            const buffaloPrice = parseFloat(document.getElementById('addBuffaloPrice').value) || 0;
+            const cowPrice = parseFloat(document.getElementById('addCowPrice').value) || 0;
+            
+            if (!name) {
+                showNotification('يرجى إدخال اسم الزبون', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('addSubmitBtn');
+            showLoading(submitBtn, 'جاري الإضافة...');
+
+            try {
+                await api.addCustomer(name, buffaloPrice, cowPrice);
+                showNotification('تم إضافة الزبون بنجاح', 'success');
+                closeAddModal();
+                await loadCustomers();
+            } catch (error) {
+                console.error('Error adding customer:', error);
+                showNotification('خطأ في إضافة الزبون', 'error');
+            } finally {
+                hideLoading(submitBtn, 'إضافة');
+            }
+        }
+
+        // فتح modal تعديل زبون
+        function openEditModal(customerId) {
+            const customer = customers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            document.getElementById('editId').value = customer.id;
+            document.getElementById('editName').value = customer.name;
+            document.getElementById('editBuffaloPrice').value = customer.buffaloPrice;
+            document.getElementById('editCowPrice').value = customer.cowPrice;
+            
+            document.getElementById('editModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('editName').focus(), 100);
+        }
+
+        // إغلاق modal تعديل زبون
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editForm').reset();
+        }
+
+        // معالجة تعديل زبون
+        async function handleEditCustomer(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value.trim();
+            const buffaloPrice = parseFloat(document.getElementById('editBuffaloPrice').value) || 0;
+            const cowPrice = parseFloat(document.getElementById('editCowPrice').value) || 0;
+            
+            if (!name) {
+                showNotification('يرجى إدخال اسم الزبون', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('editSubmitBtn');
+            showLoading(submitBtn, 'جاري الحفظ...');
+
+            try {
+                await api.updateCustomer(id, { name, buffaloPrice, cowPrice });
+                showNotification('تم تحديث الزبون بنجاح', 'success');
+                closeEditModal();
+                await loadCustomers();
+            } catch (error) {
+                console.error('Error updating customer:', error);
+                showNotification('خطأ في تحديث الزبون', 'error');
+            } finally {
+                hideLoading(submitBtn, 'حفظ');
+            }
+        }
+
+        // فتح modal تأكيد الحذف
+        function openDeleteModal(customerId, customerName) {
+            customerToDelete = customerId;
+            document.getElementById('deleteCustomerName').textContent = customerName;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        // إغلاق modal تأكيد الحذف
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            customerToDelete = null;
+        }
+
+        // تأكيد حذف الزبون
+        async function confirmDelete() {
+            if (!customerToDelete) return;
+
+            const confirmBtn = document.getElementById('deleteConfirmBtn');
+            showLoading(confirmBtn, 'جاري الحذف...');
+
+            try {
+                await api.deleteCustomer(customerToDelete);
+                showNotification('تم حذف الزبون بنجاح', 'success');
+                closeDeleteModal();
+                await loadCustomers();
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                showNotification('خطأ في حذف الزبون', 'error');
+            } finally {
+                hideLoading(confirmBtn, 'حذف');
+            }
+        }
+
+        // Utility functions
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+            
+            if (type === 'success') {
+                notification.className += ' bg-green-500 text-white';
+            } else if (type === 'error') {
+                notification.className += ' bg-red-500 text-white';
+            } else {
+                notification.className += ' bg-blue-500 text-white';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        function showLoading(button, text) {
+            button.disabled = true;
+            button.innerHTML = `<div class="loading"></div> ${text}`;
+        }
+
+        function hideLoading(button, text) {
+            button.disabled = false;
+            button.innerHTML = text;
+        }
+
+        // إغلاق المودال عند الضغط خارجه
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                if (event.target.id === 'addModal') closeAddModal();
+                if (event.target.id === 'editModal') closeEditModal();
+                if (event.target.id === 'deleteModal') closeDeleteModal();
+            }
+        });
+
+        // إغلاق المودال بمفتاح Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeAddModal();
+                closeEditModal();
+                closeDeleteModal();
+            }
+        });
+    </script>
+</body>
+</html>

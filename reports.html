@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقارير المالية - دفتر زبائن اللبن</title>
+    <!-- Creating reports and financial summary HTML page -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="css/styles.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-2 sm:p-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- الهيدر -->
+        <div class="text-center mb-6">
+            <button onclick="navigateTo('index.html')" class="btn btn-secondary flex items-center gap-2 mb-4 mx-auto">
+                <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                العودة للرئيسية
+            </button>
+            <div class="flex items-center justify-center gap-3 mb-2">
+                <i data-lucide="calculator" class="h-6 w-6 sm:h-8 sm:w-8 text-green-600"></i>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">صفي</h1>
+            </div>
+        </div>
+
+        <!-- التنقل بين الأسابيع -->
+        <div class="card mb-6">
+            <div class="p-4 sm:p-6">
+                <div class="space-y-4">
+                    <!-- الأزرار -->
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="goToPreviousWeek()" class="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2">
+                            <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                            <span class="hidden sm:inline">الأسبوع السابق</span>
+                            <span class="sm:hidden">السابق</span>
+                        </button>
+                        <button onclick="goToNextWeek()" class="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2">
+                            <span class="hidden sm:inline">الأسبوع التالي</span>
+                            <span class="sm:hidden">التالي</span>
+                            <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- نطاق الأسبوع -->
+                    <div class="text-center">
+                        <div id="weekRange" class="text-base sm:text-lg font-semibold text-gray-800 mb-2"></div>
+                        <button onclick="goToCurrentWeek()" class="btn btn-secondary text-xs sm:text-sm text-blue-600 bg-transparent border-none hover:bg-blue-50 px-3 py-1">
+                            الأسبوع الحالي
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- أزرار الإجراءات -->
+        <div class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 mb-6">
+            <button onclick="toggleArchivedWeeks()" class="btn btn-secondary flex items-center gap-2 w-full sm:w-auto justify-center text-sm">
+                📊 <span class="hidden sm:inline">عرض كل الأسابيع</span><span class="sm:hidden">الأسابيع</span>
+            </button>
+            <button onclick="archiveCurrentWeek()" class="btn btn-secondary flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 bg-transparent w-full sm:w-auto justify-center text-sm">
+                🗂️ <span class="hidden sm:inline">صفر الأسبوع وأبدأ من جديد</span><span class="sm:hidden">صفر الأسبوع</span>
+            </button>
+        </div>
+
+        <!-- عرض الأسابيع المؤرشفة -->
+        <div id="archivedWeeksSection" class="card mb-6" style="display: none;">
+            <div class="p-4 sm:p-6">
+                <h3 class="text-lg sm:text-xl font-semibold mb-4">الأسابيع المؤرشفة</h3>
+                <div id="archivedWeeksContainer">
+                    <div class="text-center py-4 text-gray-500">
+                        <div class="loading mx-auto mb-2"></div>
+                        <p>جاري تحميل الأسابيع المؤرشفة...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- المجاميع الكلية -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="card">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs sm:text-sm font-medium text-gray-600">إجمالي الجاموسي</h4>
+                        <i data-lucide="milk" class="h-4 w-4 text-orange-600"></i>
+                    </div>
+                    <div id="grandTotalBuffalo" class="text-lg sm:text-2xl font-bold text-orange-600">0.00 كيلو</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs sm:text-sm font-medium text-gray-600">إجمالي البقري</h4>
+                        <i data-lucide="milk" class="h-4 w-4 text-blue-600"></i>
+                    </div>
+                    <div id="grandTotalCow" class="text-lg sm:text-2xl font-bold text-blue-600">0.00 كيلو</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="p-4 sm:p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-xs sm:text-sm font-medium text-gray-600">المجموع الكلي</h4>
+                        <i data-lucide="dollar-sign" class="h-4 w-4 text-green-600"></i>
+                    </div>
+                    <div id="grandTotalAmount" class="text-lg sm:text-2xl font-bold text-green-600">0.00 جنيه</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تفاصيل الزبائن -->
+        <div id="customerSummariesContainer">
+            <div class="text-center py-8 text-gray-500">
+                <div class="loading mx-auto mb-4"></div>
+                <p>جاري تحميل التقارير...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let currentWeekStart = MilkPortalUtils.getWeekStart();
+        let customerSummaries = [];
+        let archivedWeeks = [];
+        let showingArchived = false;
+
+        // تحميل البيانات عند بداية الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            lucide.createIcons();
+            await loadWeekSummary();
+            await loadArchivedWeeks();
+        });
+
+        // تحميل ملخص الأسبوع
+        async function loadWeekSummary() {
+            try {
+                const data = await api.getWeekSummary(currentWeekStart);
+                customerSummaries = data.customerSummaries || [];
+                updateWeekRange(data.weekStart, data.weekEnd);
+                renderCustomerSummaries();
+                updateGrandTotals();
+            } catch (error) {
+                console.error('Error loading week summary:', error);
+                MilkPortalUtils.showNotification('خطأ في تحميل التقارير', 'error');
+                document.getElementById('customerSummariesContainer').innerHTML = `
+                    <div class="card">
+                        <div class="p-6 text-center text-gray-500">
+                            <p>خطأ في تحميل التقارير</p>
+                            <button onclick="loadWeekSummary()" class="btn btn-primary mt-4">إعادة المحاولة</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // تحميل الأسابيع المؤرشفة
+        async function loadArchivedWeeks() {
+            try {
+                archivedWeeks = await api.getArchivedWeeks();
+                renderArchivedWeeks();
+            } catch (error) {
+                console.error('Error loading archived weeks:', error);
+            }
+        }
+
+        // تحديث نطاق الأسبوع
+        function updateWeekRange(startDate, endDate) {
+            const start = MilkPortalUtils.formatDisplayDate(startDate);
+            const end = MilkPortalUtils.formatDisplayDate(endDate);
+            document.getElementById('weekRange').textContent = `${start} - ${end}`;
+        }
+
+        // عرض ملخص الزبائن
+        function renderCustomerSummaries() {
+            const container = document.getElementById('customerSummariesContainer');
+
+            if (customerSummaries.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="p-6 text-center text-gray-500">
+                            <p>لا توجد بيانات لهذا الأسبوع</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const summariesHtml = customerSummaries.map((summary, index) => `
+                <div class="card hover:shadow-md transition-shadow mb-4">
+                    <div class="p-4 sm:p-6">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="flex items-center gap-4 flex-1 min-w-0">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="text-base sm:text-lg font-bold text-blue-600">${index + 1}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">${summary.customer.name}</h3>
+                                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
+                                        <span>جاموسي: ${MilkPortalUtils.formatNumber(summary.totalBuffalo)} كيلو</span>
+                                        <span>بقري: ${MilkPortalUtils.formatNumber(summary.totalCow)} كيلو</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right w-full sm:w-auto">
+                                <div class="text-xl sm:text-2xl font-bold text-green-600 mb-1">
+                                    ${MilkPortalUtils.formatNumber(summary.totalAmount)} جنيه
+                                </div>
+                                <div class="text-xs text-gray-500 space-y-1">
+                                    <div>جاموسي: ${MilkPortalUtils.formatNumber(summary.buffaloAmount)} جنيه</div>
+                                    <div>بقري: ${MilkPortalUtils.formatNumber(summary.cowAmount)} جنيه</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = summariesHtml;
+        }
+
+        // تحديث المجاميع الكلية
+        function updateGrandTotals() {
+            const totals = customerSummaries.reduce((acc, summary) => ({
+                totalBuffalo: acc.totalBuffalo + summary.totalBuffalo,
+                totalCow: acc.totalCow + summary.totalCow,
+                totalAmount: acc.totalAmount + summary.totalAmount
+            }), { totalBuffalo: 0, totalCow: 0, totalAmount: 0 });
+
+            document.getElementById('grandTotalBuffalo').textContent = `${MilkPortalUtils.formatNumber(totals.totalBuffalo)} كيلو`;
+            document.getElementById('grandTotalCow').textContent = `${MilkPortalUtils.formatNumber(totals.totalCow)} كيلو`;
+            document.getElementById('grandTotalAmount').textContent = `${MilkPortalUtils.formatNumber(totals.totalAmount)} جنيه`;
+        }
+
+        // عرض الأسابيع المؤرشفة
+        function renderArchivedWeeks() {
+            const container = document.getElementById('archivedWeeksContainer');
+
+            if (archivedWeeks.length === 0) {
+                container.innerHTML = `
+                    <p class="text-gray-500 text-center py-4">لا توجد أسابيع مؤرشفة</p>
+                `;
+                return;
+            }
+
+            const weeksHtml = archivedWeeks.map(week => `
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-gray-50 rounded-lg mb-2 gap-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-sm sm:text-base">
+                            ${MilkPortalUtils.formatDisplayDate(week.startDate)} - ${MilkPortalUtils.formatDisplayDate(week.endDate)}
+                        </div>
+                        <div class="text-xs sm:text-sm text-gray-600">
+                            جاموسي: ${MilkPortalUtils.formatNumber(week.totalBuffalo)} • بقري: ${MilkPortalUtils.formatNumber(week.totalCow)}
+                        </div>
+                    </div>
+                    <div class="text-xs sm:text-sm text-gray-500">
+                        ${new Date(week.createdAt).toLocaleDateString('ar-EG')}
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = weeksHtml;
+        }
+
+        // الانتقال للأسبوع السابق
+        function goToPreviousWeek() {
+            const newWeekStart = new Date(currentWeekStart);
+            newWeekStart.setDate(newWeekStart.getDate() - 7);
+            currentWeekStart = MilkPortalUtils.formatDate(newWeekStart);
+            loadWeekSummary();
+        }
+
+        // الانتقال للأسبوع التالي
+        function goToNextWeek() {
+            const newWeekStart = new Date(currentWeekStart);
+            newWeekStart.setDate(newWeekStart.getDate() + 7);
+            currentWeekStart = MilkPortalUtils.formatDate(newWeekStart);
+            loadWeekSummary();
+        }
+
+        // الانتقال للأسبوع الحالي
+        function goToCurrentWeek() {
+            currentWeekStart = MilkPortalUtils.getWeekStart();
+            loadWeekSummary();
+        }
+
+        // تبديل عرض الأسابيع المؤرشفة
+        function toggleArchivedWeeks() {
+            const section = document.getElementById('archivedWeeksSection');
+            showingArchived = !showingArchived;
+            
+            if (showingArchived) {
+                section.style.display = 'block';
+                section.classList.add('fade-in');
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        // أرشفة الأسبوع الحالي
+        async function archiveCurrentWeek() {
+            if (!MilkPortalUtils.confirm('هل تريد أرشفة الأسبوع الحالي وبدء أسبوع جديد؟')) {
+                return;
+            }
+
+            try {
+                await api.archiveWeek(currentWeekStart);
+                MilkPortalUtils.showNotification('تم أرشفة الأسبوع بنجاح', 'success');
+                
+                // إعادة تحميل البيانات
+                await loadWeekSummary();
+                await loadArchivedWeeks();
+            } catch (error) {
+                console.error('Error archiving week:', error);
+                MilkPortalUtils.showNotification('خطأ في أرشفة الأسبوع', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

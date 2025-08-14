@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دفتر زبائن اللبن</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transform: translateY(-2px);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 44px; /* تحسين للمس على الهواتف */
+        }
+        .btn-orange {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+        }
+        .btn-orange:hover {
+            background: linear-gradient(135deg, #ea580c, #dc2626);
+            transform: translateY(-1px);
+        }
+        .btn-purple {
+            background: linear-gradient(135deg, #9333ea, #7c3aed);
+            color: white;
+        }
+        .btn-purple:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transform: translateY(-1px);
+        }
+        .btn-green {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+        .btn-green:hover {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            transform: translateY(-1px);
+        }
+        .btn-blue {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        .btn-blue:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+        }
+        /* تحسين التخطيط المتجاوب */
+        @media (max-width: 640px) {
+            .btn {
+                padding: 0.875rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-purple-50">
+    <!-- تحسين التخطيط العام والحاوي الرئيسي -->
+    <div class="min-h-screen flex flex-col">
+        <div class="flex-1 p-4 sm:p-6 lg:p-8">
+            <div class="max-w-6xl mx-auto">
+                <!-- العنوان الرئيسي -->
+                <div class="text-center mb-8 sm:mb-12">
+                    <div class="flex items-center justify-center gap-3 mb-4">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="milk" class="h-8 w-8 sm:h-10 sm:w-10 text-white"></i>
+                        </div>
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">دفتر زبائن اللبن</h1>
+                    </div>
+                    <p class="text-gray-600 text-lg sm:text-xl">نظام إدارة زبائن اللبن اليومي</p>
+                </div>
+
+                <!-- الخيارات الرئيسية -->
+                <!-- تحسين شبكة الخيارات للتخطيط المتجاوب -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                    <!-- أبدأ اللفة الصباحية -->
+                    <div class="card hover:border-orange-300 border-2 border-transparent cursor-pointer" onclick="navigateTo('daily-round.html?type=morning')">
+                        <div class="p-6 sm:p-8">
+                            <div class="text-center mb-6">
+                                <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center mb-4">
+                                    <i data-lucide="sunrise" class="h-8 w-8 sm:h-10 sm:w-10 text-orange-600"></i>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl text-gray-800 font-semibold mb-2">اللفة الصباحية</h3>
+                                <p class="text-gray-600 text-sm">ابدأ جولة توزيع اللبن الصباحية</p>
+                            </div>
+                            <button class="btn btn-orange w-full text-lg">
+                                <i data-lucide="play" class="h-5 w-5"></i>
+                                ابدأ الآن
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- أبدأ اللفة المسائية -->
+                    <div class="card hover:border-purple-300 border-2 border-transparent cursor-pointer" onclick="navigateTo('daily-round.html?type=evening')">
+                        <div class="p-6 sm:p-8">
+                            <div class="text-center mb-6">
+                                <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mb-4">
+                                    <i data-lucide="sunset" class="h-8 w-8 sm:h-10 sm:w-10 text-purple-600"></i>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl text-gray-800 font-semibold mb-2">اللفة المسائية</h3>
+                                <p class="text-gray-600 text-sm">ابدأ جولة توزيع اللبن المسائية</p>
+                            </div>
+                            <button class="btn btn-purple w-full text-lg">
+                                <i data-lucide="play" class="h-5 w-5"></i>
+                                ابدأ الآن
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- إدارة الزبائن -->
+                    <div class="card hover:border-green-300 border-2 border-transparent cursor-pointer" onclick="navigateTo('customers.html')">
+                        <div class="p-6 sm:p-8">
+                            <div class="text-center mb-6">
+                                <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mb-4">
+                                    <i data-lucide="users" class="h-8 w-8 sm:h-10 sm:w-10 text-green-600"></i>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl text-gray-800 font-semibold mb-2">إدارة الزبائن</h3>
+                                <p class="text-gray-600 text-sm">إضافة وتعديل وحذف الزبائن</p>
+                            </div>
+                            <button class="btn btn-green w-full text-lg">
+                                <i data-lucide="settings" class="h-5 w-5"></i>
+                                إدارة الزبائن
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- التقارير -->
+                    <!-- جعل التقارير تأخذ العرض الكامل في الشاشات الكبيرة -->
+                    <div class="card hover:border-blue-300 border-2 border-transparent cursor-pointer sm:col-span-2 lg:col-span-3" onclick="navigateTo('reports.html')">
+                        <div class="p-6 sm:p-8">
+                            <div class="text-center mb-6">
+                                <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-4">
+                                    <i data-lucide="bar-chart-3" class="h-8 w-8 sm:h-10 sm:w-10 text-blue-600"></i>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl text-gray-800 font-semibold mb-2">التقارير والحسابات</h3>
+                                <p class="text-gray-600 text-sm">عرض التقارير المالية وتصفية الحسابات</p>
+                            </div>
+                            <div class="max-w-md mx-auto">
+                                <button class="btn btn-blue w-full text-lg">
+                                    <i data-lucide="calculator" class="h-5 w-5"></i>
+                                    صفي الحسابات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- معلومات إضافية -->
+                <div class="mt-12 text-center">
+                    <div class="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-gray-200">
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <i data-lucide="calendar" class="h-4 w-4 inline mr-2"></i>
+                            الأسبوع يبدأ من يوم الخميس
+                            <span class="mx-4">•</span>
+                            <i data-lucide="database" class="h-4 w-4 inline mr-2"></i>
+                            يتم حفظ البيانات في ملفات JSON
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Navigation function
+        function navigateTo(url) {
+            window.location.href = url;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('دفتر زبائن اللبن - الصفحة الرئيسية');
+            
+            // Add loading animation
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === '1') navigateTo('daily-round.html?type=morning');
+            if (event.key === '2') navigateTo('daily-round.html?type=evening');
+            if (event.key === '3') navigateTo('customers.html');
+            if (event.key === '4') navigateTo('reports.html');
+        });
+    </script>
+</body>
+</html>

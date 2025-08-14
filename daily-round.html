@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اللفة اليومية - دفتر زبائن اللبن</title>
+    <!-- Creating daily round management HTML page with drag-and-drop and auto-save -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <link href="css/styles.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'arabic': ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sortable-ghost {
+            opacity: 0.5;
+        }
+        .sortable-chosen {
+            transform: scale(1.02);
+        }
+        .customer-card {
+            transition: all 0.2s ease;
+        }
+        .customer-card:hover {
+            transform: translateY(-2px);
+        }
+        .auto-save-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
+        /* إضافة أنماط لمقبض السحب */
+        .drag-handle {
+            cursor: grab;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        .drag-handle:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        /* منع تحديد النص أثناء السحب */
+        .dragging * {
+            user-select: none;
+        }
+        /* تحسين مظهر حقول الإدخال */
+        .quantity-input {
+            transition: all 0.2s ease;
+        }
+        .quantity-input:focus {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-orange-50 to-purple-50 p-2 sm:p-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- مؤشر الحفظ التلقائي -->
+        <div id="autoSaveIndicator" class="auto-save-indicator">
+            <i data-lucide="check" class="h-4 w-4 inline mr-1"></i>
+            تم الحفظ تلقائياً
+        </div>
+
+        <!-- الهيدر -->
+        <!-- تحسين تخطيط الهيدر للشاشات الصغيرة -->
+        <div class="mb-6">
+            <!-- الصف الأول: العنوان والأيقونة -->
+            <div class="text-center mb-4">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <i id="roundIcon" class="h-8 w-8"></i>
+                    <h1 id="roundTitle" class="text-2xl sm:text-3xl font-bold text-gray-800"></h1>
+                </div>
+                <div class="flex items-center justify-center gap-4 text-gray-600 text-sm">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="calendar" class="h-4 w-4"></i>
+                        <span id="dayName"></span>
+                    </div>
+                    <input type="date" id="dateInput" class="input text-sm bg-white px-2 py-1">
+                </div>
+            </div>
+            
+            <!-- الصف الثاني: أزرار التنقل -->
+            <div class="flex items-center justify-between gap-2">
+                <button onclick="navigateTo('index.html')" class="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2">
+                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                    <span class="hidden sm:inline">العودة للرئيسية</span>
+                    <span class="sm:hidden">العودة</span>
+                </button>
+                <button onclick="handleSave()" id="saveBtn" class="btn text-sm px-4 py-2">
+                    <i data-lucide="save" class="h-4 w-4 mr-2"></i>
+                    حفظ
+                </button>
+            </div>
+        </div>
+
+        <!-- المجاميع -->
+        <div class="card mb-6">
+            <div class="p-4 sm:p-6">
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                        <div id="totalBuffalo" class="text-xl sm:text-2xl font-bold text-orange-600">0.00</div>
+                        <div class="text-xs sm:text-sm text-gray-600">إجمالي الجاموسي (كيلو)</div>
+                    </div>
+                    <div>
+                        <div id="totalCow" class="text-xl sm:text-2xl font-bold text-blue-600">0.00</div>
+                        <div class="text-xs sm:text-sm text-gray-600">إجمالي البقري (كيلو)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- قائمة الزبائن -->
+        <div class="card">
+            <div class="p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="customersTitle" class="text-lg sm:text-xl font-semibold">الزبائن</h3>
+                    <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        <i data-lucide="move" class="h-3 w-3"></i>
+                        اسحب لتغيير الترتيب
+                    </div>
+                </div>
+                
+                <!-- البحث -->
+                <div class="relative mb-4">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="ابحث عن زبون..." class="input w-full pl-10 text-sm">
+                </div>
+
+                <div id="customersContainer">
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="loading mx-auto mb-4"></div>
+                        <p>جاري تحميل الزبائن...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- نصائح الاستخدام -->
+        <div class="mt-6 text-center text-xs sm:text-sm text-gray-500 space-y-1 px-2">
+            <p>يمكنك إدخال الكسور مثل: 0.25 (ربع) • 0.5 (نص) • 0.75 (ثلاثة أرباع) • 1.25 (كيلو وربع)</p>
+            <p class="text-green-600 font-medium">✓ يتم حفظ البيانات تلقائياً عند كل تغيير</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        let customers = [];
+        let filteredCustomers = [];
+        let roundType = 'morning';
+        let currentDate = MilkPortalUtils.formatDate();
+        let autoSaveTimeout = null;
+        let sortable = null;
+
+        // تحميل البيانات عند بداية الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            lucide.createIcons();
+            
+            // الحصول على نوع اللفة والتاريخ من URL
+            const params = MilkPortalUtils.getUrlParams();
+            roundType = params.type || 'morning';
+            currentDate = params.date || MilkPortalUtils.formatDate();
+            
+            setupUI();
+            await loadCustomers();
+            setupEventListeners();
+        });
+
+        // إعداد واجهة المستخدم
+        function setupUI() {
+            const roundIcon = document.getElementById('roundIcon');
+            const roundTitle = document.getElementById('roundTitle');
+            const saveBtn = document.getElementById('saveBtn');
+            const dateInput = document.getElementById('dateInput');
+            
+            if (roundType === 'morning') {
+                roundIcon.setAttribute('data-lucide', 'sunrise');
+                roundIcon.className = 'h-8 w-8 text-orange-500';
+                roundTitle.textContent = 'اللفة الصباحية';
+                saveBtn.className = 'btn btn-orange';
+            } else {
+                roundIcon.setAttribute('data-lucide', 'sunset');
+                roundIcon.className = 'h-8 w-8 text-purple-500';
+                roundTitle.textContent = 'اللفة المسائية';
+                saveBtn.className = 'btn btn-purple';
+            }
+            
+            dateInput.value = currentDate;
+            updateDayName();
+            lucide.createIcons();
+        }
+
+        // تحديث اسم اليوم
+        function updateDayName() {
+            const date = new Date(currentDate);
+            const dayName = MilkPortalUtils.dayNames[date.getDay()];
+            document.getElementById('dayName').textContent = dayName;
+        }
+
+        // إعداد مستمعي الأحداث
+        function setupEventListeners() {
+            // تغيير التاريخ
+            document.getElementById('dateInput').addEventListener('change', function(e) {
+                currentDate = e.target.value;
+                updateDayName();
+                loadCustomers();
+            });
+
+            // البحث
+            document.getElementById('searchInput').addEventListener('input', MilkPortalUtils.debounce(function(e) {
+                filterCustomers(e.target.value);
+            }, 300));
+        }
+
+        // تحميل الزبائن
+        async function loadCustomers() {
+            try {
+                const [customersData, roundsData] = await Promise.all([
+                    api.getCustomers(),
+                    api.getDailyRounds(currentDate, roundType)
+                ]);
+
+                // دمج بيانات الزبائن مع الكميات المحفوظة
+                customers = customersData.map(customer => {
+                    const existingRound = roundsData.find(round => round.customerId === customer.id);
+                    return {
+                        ...customer,
+                        buffalo: existingRound ? existingRound.buffalo : 0,
+                        cow: existingRound ? existingRound.cow : 0
+                    };
+                });
+
+                filteredCustomers = [...customers];
+                renderCustomers();
+                updateTotals();
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                MilkPortalUtils.showNotification('خطأ في تحميل البيانات', 'error');
+                document.getElementById('customersContainer').innerHTML = `
+                    <div class="text-center py-8 text-red-500">
+                        <p>خطأ في تحميل البيانات</p>
+                        <button onclick="loadCustomers()" class="btn btn-primary mt-4">إعادة المحاولة</button>
+                    </div>
+                `;
+            }
+        }
+
+        // تصفية الزبائن
+        function filterCustomers(searchTerm) {
+            if (!searchTerm.trim()) {
+                filteredCustomers = [...customers];
+            } else {
+                filteredCustomers = customers.filter(customer =>
+                    customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            renderCustomers();
+            updateTotals();
+        }
+
+        // عرض قائمة الزبائن
+        function renderCustomers() {
+            const container = document.getElementById('customersContainer');
+            const title = document.getElementById('customersTitle');
+            
+            title.textContent = `الزبائن (${filteredCustomers.length})`;
+
+            if (customers.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <p>لا يوجد زبائن مسجلين</p>
+                        <button onclick="navigateTo('customers.html')" class="btn btn-secondary mt-4">إضافة زبائن</button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (filteredCustomers.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <p>لا يوجد زبائن مطابقين للبحث</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const customersHtml = filteredCustomers.map((customer, index) => `
+                <div class="customer-card p-3 sm:p-4 bg-white rounded-lg border-2 border-solid mb-3" data-customer-id="${customer.id}">
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <!-- مقبض السحب المحدد -->
+                        <div class="drag-handle flex items-center gap-2" title="اسحب لتغيير الترتيب">
+                            <i data-lucide="grip-vertical" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
+                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-semibold text-xs sm:text-sm">
+                                ${index + 1}
+                            </div>
+                        </div>
+
+                        <!-- اسم الزبون -->
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">${customer.name}</h3>
+                        </div>
+
+                        <!-- حقول الإدخال المحسنة -->
+                        <div class="flex gap-2 sm:gap-4">
+                            <!-- الجاموسي -->
+                            <div class="w-16 sm:w-20">
+                                <label class="text-xs text-orange-600 block mb-1">جاموسي</label>
+                                <input type="number" 
+                                       step="0.25" 
+                                       min="0" 
+                                       value="${customer.buffalo || ''}" 
+                                       placeholder="0"
+                                       class="quantity-input input text-center w-full text-xs sm:text-sm px-1 py-1"
+                                       data-customer-id="${customer.id}"
+                                       data-type="buffalo"
+                                       inputmode="decimal"
+                                       autocomplete="off">
+                            </div>
+
+                            <!-- البقري -->
+                            <div class="w-16 sm:w-20">
+                                <label class="text-xs text-blue-600 block mb-1">بقري</label>
+                                <input type="number" 
+                                       step="0.25" 
+                                       min="0" 
+                                       value="${customer.cow || ''}" 
+                                       placeholder="0"
+                                       class="quantity-input input text-center w-full text-xs sm:text-sm px-1 py-1"
+                                       data-customer-id="${customer.id}"
+                                       data-type="cow"
+                                       inputmode="decimal"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `<div id="sortableContainer">${customersHtml}</div>`;
+            lucide.createIcons();
+            
+            // إعداد السحب والإفلات
+            setupSortable();
+            setupInputListeners();
+        }
+
+        function setupSortable() {
+            const container = document.getElementById('sortableContainer');
+            if (sortable) {
+                sortable.destroy();
+            }
+            
+            sortable = Sortable.create(container, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                handle: '.drag-handle', // تقييد السحب على المقبض فقط
+                onStart: function(evt) {
+                    evt.item.classList.add('dragging');
+                },
+                onEnd: function(evt) {
+                    evt.item.classList.remove('dragging');
+                    
+                    // تحديث ترتيب الزبائن
+                    const movedCustomer = filteredCustomers[evt.oldIndex];
+                    filteredCustomers.splice(evt.oldIndex, 1);
+                    filteredCustomers.splice(evt.newIndex, 0, movedCustomer);
+                    
+                    // تحديث ترتيب الزبائن في المصفوفة الأساسية
+                    filteredCustomers.forEach((customer, index) => {
+                        customer.order = index;
+                        const customerIndex = customers.findIndex(c => c.id === customer.id);
+                        if (customerIndex !== -1) {
+                            customers[customerIndex].order = index;
+                        }
+                    });
+                    
+                    // حفظ الترتيب الجديد
+                    saveCustomerOrder();
+                    renderCustomers();
+                }
+            });
+        }
+
+        function setupInputListeners() {
+            const inputs = document.querySelectorAll('.quantity-input');
+            
+            inputs.forEach(input => {
+                // التحديث الفوري أثناء الكتابة
+                input.addEventListener('input', function(e) {
+                    const customerId = e.target.dataset.customerId;
+                    const type = e.target.dataset.type;
+                    const value = e.target.value;
+                    
+                    // تحديث فوري للقيم والمجاميع
+                    updateQuantityImmediate(customerId, type, value);
+                    
+                    // جدولة الحفظ التلقائي
+                    scheduleAutoSave();
+                });
+
+                // منع ظهور لوحة المفاتيح على الأجهزة المحمولة عند التركيز
+                input.addEventListener('focus', function(e) {
+                    // إضافة readonly مؤقتاً لمنع لوحة المفاتيح
+                    if (window.innerWidth <= 768) { // للشاشات الصغيرة فقط
+                        e.target.setAttribute('readonly', 'readonly');
+                        
+                        // إزالة readonly بعد فترة قصيرة للسماح بالكتابة
+                        setTimeout(() => {
+                            e.target.removeAttribute('readonly');
+                        }, 100);
+                    }
+                });
+
+                // تحسين تجربة الكتابة
+                input.addEventListener('keydown', function(e) {
+                    // السماح بالأرقام والنقطة والفاصلة والمفاتيح الخاصة
+                    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+                    const isNumber = (e.key >= '0' && e.key <= '9');
+                    const isDecimal = (e.key === '.' || e.key === ',');
+                    
+                    if (!allowedKeys.includes(e.key) && !isNumber && !isDecimal) {
+                        e.preventDefault();
+                    }
+                    
+                    // تحويل الفاصلة إلى نقطة
+                    if (e.key === ',') {
+                        e.preventDefault();
+                        const cursorPos = e.target.selectionStart;
+                        const currentValue = e.target.value;
+                        e.target.value = currentValue.slice(0, cursorPos) + '.' + currentValue.slice(cursorPos);
+                        e.target.setSelectionRange(cursorPos + 1, cursorPos + 1);
+                        
+                        // تحديث فوري
+                        const customerId = e.target.dataset.customerId;
+                        const type = e.target.dataset.type;
+                        updateQuantityImmediate(customerId, type, e.target.value);
+                        scheduleAutoSave();
+                    }
+                });
+            });
+        }
+
+        function updateQuantityImmediate(customerId, type, value) {
+            const numValue = parseFloat(value) || 0;
+            
+            // تحديث في المصفوفة المفلترة
+            const filteredIndex = filteredCustomers.findIndex(c => c.id === customerId);
+            if (filteredIndex !== -1) {
+                filteredCustomers[filteredIndex][type] = numValue;
+            }
+            
+            // تحديث في المصفوفة الأساسية
+            const customerIndex = customers.findIndex(c => c.id === customerId);
+            if (customerIndex !== -1) {
+                customers[customerIndex][type] = numValue;
+            }
+            
+            // تحديث المجاميع فوراً
+            updateTotals();
+        }
+
+        // تحديث كمية الزبون (للاستخدام مع onchange)
+        function updateQuantity(customerId, type, value) {
+            updateQuantityImmediate(customerId, type, value);
+        }
+
+        // تحديث المجاميع
+        function updateTotals() {
+            const totalBuffalo = filteredCustomers.reduce((sum, customer) => sum + (customer.buffalo || 0), 0);
+            const totalCow = filteredCustomers.reduce((sum, customer) => sum + (customer.cow || 0), 0);
+            
+            document.getElementById('totalBuffalo').textContent = MilkPortalUtils.formatNumber(totalBuffalo);
+            document.getElementById('totalCow').textContent = MilkPortalUtils.formatNumber(totalCow);
+        }
+
+        // جدولة الحفظ التلقائي
+        function scheduleAutoSave() {
+            if (autoSaveTimeout) {
+                clearTimeout(autoSaveTimeout);
+            }
+            
+            // تقليل وقت التأخير لحفظ أسرع
+            autoSaveTimeout = setTimeout(async () => {
+                await autoSave();
+            }, 500); // تقليل من 1000ms إلى 500ms
+        }
+
+        // الحفظ التلقائي
+        async function autoSave() {
+            try {
+                const promises = customers
+                    .filter(customer => customer.buffalo > 0 || customer.cow > 0)
+                    .map(customer => api.saveDailyRound({
+                        date: currentDate,
+                        type: roundType,
+                        customerId: customer.id,
+                        buffalo: customer.buffalo || 0,
+                        cow: customer.cow || 0
+                    }));
+                
+                await Promise.all(promises);
+                showAutoSaveIndicator();
+            } catch (error) {
+                console.error('Auto-save error:', error);
+            }
+        }
+
+        // عرض مؤشر الحفظ التلقائي
+        function showAutoSaveIndicator() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        // حفظ ترتيب الزبائن
+        async function saveCustomerOrder() {
+            try {
+                const promises = customers.map(customer => 
+                    api.updateCustomer(customer.id, { order: customer.order })
+                );
+                await Promise.all(promises);
+            } catch (error) {
+                console.error('Error saving customer order:', error);
+            }
+        }
+
+        // معالجة الحفظ اليدوي
+        async function handleSave() {
+            const saveBtn = document.getElementById('saveBtn');
+            MilkPortalUtils.showLoading(saveBtn, 'جاري الحفظ...');
+
+            try {
+                await autoSave();
+                MilkPortalUtils.showNotification('تم حفظ البيانات بنجاح', 'success');
+                
+                setTimeout(() => {
+                    navigateTo('index.html');
+                }, 1000);
+            } catch (error) {
+                console.error('Save error:', error);
+                MilkPortalUtils.showNotification('خطأ في حفظ البيانات', 'error');
+            } finally {
+                MilkPortalUtils.hideLoading(saveBtn, 'حفظ');
+            }
+        }
+    </script>
+</body>
+</html>
