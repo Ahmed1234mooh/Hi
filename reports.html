@@ -2,223 +2,328 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التقارير المالية - دفتر زبائن اللبن</title>
-    <!-- Creating reports and financial summary HTML page -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; img-src 'self' data: content:;">
+    <title>التقارير المالية - بوابة عملاء الألبان</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link href="css/styles.css" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        'arabic': ['Cairo', 'sans-serif']
+                        'arabic': ['Tajawal', 'Arial', 'sans-serif']
                     }
                 }
             }
         }
     </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-2 sm:p-4">
-    <div class="max-w-4xl mx-auto">
-        <!-- الهيدر -->
-        <div class="text-center mb-6">
-            <button onclick="navigateTo('index.html')" class="btn btn-secondary flex items-center gap-2 mb-4 mx-auto">
-                <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                العودة للرئيسية
-            </button>
-            <div class="flex items-center justify-center gap-3 mb-2">
-                <i data-lucide="calculator" class="h-6 w-6 sm:h-8 sm:w-8 text-green-600"></i>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">صفي</h1>
+<body class="bg-gradient-to-br from-blue-50 to-cyan-100 min-h-screen font-arabic">
+    <!-- شاشة التحميل -->
+    <div id="loading-screen" class="fixed inset-0 bg-gradient-to-br from-blue-600 to-cyan-700 flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <div class="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
             </div>
-        </div>
-
-        <!-- التنقل بين الأسابيع -->
-        <div class="card mb-6">
-            <div class="p-4 sm:p-6">
-                <div class="space-y-4">
-                    <!-- الأزرار -->
-                    <div class="flex items-center justify-between gap-2">
-                        <button onclick="goToPreviousWeek()" class="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2">
-                            <i data-lucide="chevron-right" class="h-4 w-4"></i>
-                            <span class="hidden sm:inline">الأسبوع السابق</span>
-                            <span class="sm:hidden">السابق</span>
-                        </button>
-                        <button onclick="goToNextWeek()" class="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2">
-                            <span class="hidden sm:inline">الأسبوع التالي</span>
-                            <span class="sm:hidden">التالي</span>
-                            <i data-lucide="chevron-left" class="h-4 w-4"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- نطاق الأسبوع -->
-                    <div class="text-center">
-                        <div id="weekRange" class="text-base sm:text-lg font-semibold text-gray-800 mb-2"></div>
-                        <button onclick="goToCurrentWeek()" class="btn btn-secondary text-xs sm:text-sm text-blue-600 bg-transparent border-none hover:bg-blue-50 px-3 py-1">
-                            الأسبوع الحالي
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- أزرار الإجراءات -->
-        <div class="space-y-3 sm:space-y-0 sm:flex sm:gap-4 mb-6">
-            <button onclick="toggleArchivedWeeks()" class="btn btn-secondary flex items-center gap-2 w-full sm:w-auto justify-center text-sm">
-                📊 <span class="hidden sm:inline">عرض كل الأسابيع</span><span class="sm:hidden">الأسابيع</span>
-            </button>
-            <button onclick="archiveCurrentWeek()" class="btn btn-secondary flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 bg-transparent w-full sm:w-auto justify-center text-sm">
-                🗂️ <span class="hidden sm:inline">صفر الأسبوع وأبدأ من جديد</span><span class="sm:hidden">صفر الأسبوع</span>
-            </button>
-        </div>
-
-        <!-- عرض الأسابيع المؤرشفة -->
-        <div id="archivedWeeksSection" class="card mb-6" style="display: none;">
-            <div class="p-4 sm:p-6">
-                <h3 class="text-lg sm:text-xl font-semibold mb-4">الأسابيع المؤرشفة</h3>
-                <div id="archivedWeeksContainer">
-                    <div class="text-center py-4 text-gray-500">
-                        <div class="loading mx-auto mb-2"></div>
-                        <p>جاري تحميل الأسابيع المؤرشفة...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- المجاميع الكلية -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div class="card">
-                <div class="p-4 sm:p-6">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-xs sm:text-sm font-medium text-gray-600">إجمالي الجاموسي</h4>
-                        <i data-lucide="milk" class="h-4 w-4 text-orange-600"></i>
-                    </div>
-                    <div id="grandTotalBuffalo" class="text-lg sm:text-2xl font-bold text-orange-600">0.00 كيلو</div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="p-4 sm:p-6">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-xs sm:text-sm font-medium text-gray-600">إجمالي البقري</h4>
-                        <i data-lucide="milk" class="h-4 w-4 text-blue-600"></i>
-                    </div>
-                    <div id="grandTotalCow" class="text-lg sm:text-2xl font-bold text-blue-600">0.00 كيلو</div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="p-4 sm:p-6">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-xs sm:text-sm font-medium text-gray-600">المجموع الكلي</h4>
-                        <i data-lucide="dollar-sign" class="h-4 w-4 text-green-600"></i>
-                    </div>
-                    <div id="grandTotalAmount" class="text-lg sm:text-2xl font-bold text-green-600">0.00 جنيه</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- تفاصيل الزبائن -->
-        <div id="customerSummariesContainer">
-            <div class="text-center py-8 text-gray-500">
-                <div class="loading mx-auto mb-4"></div>
-                <p>جاري تحميل التقارير...</p>
-            </div>
+            <h1 class="text-2xl font-bold mb-2">التقارير المالية</h1>
+            <p class="text-blue-100">جاري التحميل...</p>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/utils.js"></script>
+    <!-- المحتوى الرئيسي -->
+    <div id="main-content" class="hidden min-h-screen flex flex-col">
+        <!-- الهيدر -->
+        <header class="bg-gradient-to-r from-blue-600 to-cyan-700 text-white p-4 shadow-lg status-bar-padding">
+            <div class="max-w-md mx-auto">
+                <div class="flex items-center justify-between">
+                    <button onclick="navigateTo('index.html')" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="text-center">
+                        <h1 class="text-xl font-bold">التقارير المالية</h1>
+                        <p class="text-blue-100 text-sm" id="weekRange">الأسبوع الحالي</p>
+                    </div>
+                    <button onclick="toggleArchivedWeeks()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 00-2 2v0a2 2 0 002 2h14a2 2 0 002-2v0a2 2 0 00-2-2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- المحتوى -->
+        <main class="flex-1 p-4 safe-area-padding">
+            <div class="max-w-md mx-auto space-y-4">
+                <!-- التنقل بين الأسابيع -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <button onclick="goToPreviousWeek()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                                السابق
+                            </button>
+                            <button onclick="goToCurrentWeek()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-4 rounded-lg transition-colors text-sm">
+                                الأسبوع الحالي
+                            </button>
+                            <button onclick="goToNextWeek()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors">
+                                التالي
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div id="weekRangeDisplay" class="text-lg font-bold text-gray-800 mb-2">الأسبوع الحالي</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- أزرار الإجراءات -->
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="archiveCurrentWeek()" class="bg-white rounded-xl shadow-lg p-4 hover:shadow-xl transition-all duration-200 border-2 border-red-100 hover:border-red-200">
+                        <div class="flex items-center justify-center gap-3">
+                            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </div>
+                            <div class="text-right">
+                                <h3 class="font-bold text-gray-800">أرشفة الأسبوع</h3>
+                                <p class="text-sm text-gray-600">حفظ البيانات وبدء أسبوع جديد</p>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- المجاميع الكلية -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="text-lg font-bold text-center">المجاميع الأسبوعية</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                        <div class="w-4 h-4 bg-orange-500 rounded-full"></div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">إجمالي الجاموسي</h4>
+                                        <p class="text-sm text-gray-600">كيلو</p>
+                                    </div>
+                                </div>
+                                <div id="grandTotalBuffalo" class="text-xl font-bold text-orange-600">0.00</div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">إجمالي البقري</h4>
+                                        <p class="text-sm text-gray-600">كيلو</p>
+                                    </div>
+                                </div>
+                                <div id="grandTotalCow" class="text-xl font-bold text-blue-600">0.00</div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">المجموع الكلي</h4>
+                                        <p class="text-sm text-gray-600">جنيه مصري</p>
+                                    </div>
+                                </div>
+                                <div id="grandTotalAmount" class="text-xl font-bold text-green-600">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تفاصيل العملاء -->
+                <div id="customerSummariesContainer">
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p class="text-gray-500">جاري تحميل التقارير...</p>
+                    </div>
+                </div>
+
+                <!-- عرض الأسابيع المؤرشفة -->
+                <div id="archivedWeeksSection" class="bg-white rounded-xl shadow-lg overflow-hidden hidden">
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold">الأسابيع المؤرشفة</h3>
+                            <button onclick="toggleArchivedWeeks()" class="p-2 hover:bg-gray-100 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="archivedWeeksContainer" class="p-4">
+                        <div class="text-center py-4 text-gray-500">
+                            <div class="loading-spinner mx-auto mb-2"></div>
+                            <p>جاري تحميل الأسابيع المؤرشفة...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Cordova Scripts -->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/cordova-init.js"></script>
+    <script type="text/javascript" src="js/storage.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    
     <script>
-        let currentWeekStart = MilkPortalUtils.getWeekStart();
+        let currentWeekStart = DateUtils.getWeekStart(DateUtils.getToday());
         let customerSummaries = [];
         let archivedWeeks = [];
         let showingArchived = false;
 
-        // تحميل البيانات عند بداية الصفحة
-        document.addEventListener('DOMContentLoaded', async function() {
-            lucide.createIcons();
-            await loadWeekSummary();
-            await loadArchivedWeeks();
+        function navigateTo(url) {
+            vibrate(50);
+            window.location.href = url;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // إخفاء شاشة التحميل وتحميل البيانات
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                loadWeekSummary();
+                loadArchivedWeeks();
+            }, 1000);
         });
 
-        // تحميل ملخص الأسبوع
         async function loadWeekSummary() {
             try {
-                const data = await api.getWeekSummary(currentWeekStart);
-                customerSummaries = data.customerSummaries || [];
-                updateWeekRange(data.weekStart, data.weekEnd);
+                const weekEnd = DateUtils.getWeekEnd(currentWeekStart);
+                customerSummaries = storage.getCustomerFinancialSummary(currentWeekStart, weekEnd);
+                
+                updateWeekRange(currentWeekStart, weekEnd);
                 renderCustomerSummaries();
                 updateGrandTotals();
             } catch (error) {
                 console.error('Error loading week summary:', error);
-                MilkPortalUtils.showNotification('خطأ في تحميل التقارير', 'error');
+                AppUtils.showToast('خطأ في تحميل التقارير', 'error');
                 document.getElementById('customerSummariesContainer').innerHTML = `
-                    <div class="card">
-                        <div class="p-6 text-center text-gray-500">
-                            <p>خطأ في تحميل التقارير</p>
-                            <button onclick="loadWeekSummary()" class="btn btn-primary mt-4">إعادة المحاولة</button>
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
                         </div>
+                        <h4 class="text-lg font-bold text-red-600 mb-2">خطأ في التحميل</h4>
+                        <p class="text-gray-600 mb-4">حدث خطأ أثناء تحميل التقارير</p>
+                        <button onclick="loadWeekSummary()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200">
+                            إعادة المحاولة
+                        </button>
                     </div>
                 `;
             }
         }
 
-        // تحميل الأسابيع المؤرشفة
         async function loadArchivedWeeks() {
             try {
-                archivedWeeks = await api.getArchivedWeeks();
+                archivedWeeks = storage.getArchivedWeeks();
                 renderArchivedWeeks();
             } catch (error) {
                 console.error('Error loading archived weeks:', error);
             }
         }
 
-        // تحديث نطاق الأسبوع
         function updateWeekRange(startDate, endDate) {
-            const start = MilkPortalUtils.formatDisplayDate(startDate);
-            const end = MilkPortalUtils.formatDisplayDate(endDate);
-            document.getElementById('weekRange').textContent = `${start} - ${end}`;
+            const start = DateUtils.formatDate(startDate);
+            const end = DateUtils.formatDate(endDate);
+            const startDay = DateUtils.getDayName(startDate);
+            const endDay = DateUtils.getDayName(endDate);
+            
+            document.getElementById('weekRange').textContent = `${startDay} - ${endDay}`;
+            document.getElementById('weekRangeDisplay').textContent = `${start} - ${end}`;
         }
 
-        // عرض ملخص الزبائن
         function renderCustomerSummaries() {
             const container = document.getElementById('customerSummariesContainer');
 
             if (customerSummaries.length === 0) {
                 container.innerHTML = `
-                    <div class="card">
-                        <div class="p-6 text-center text-gray-500">
-                            <p>لا توجد بيانات لهذا الأسبوع</p>
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
                         </div>
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">لا توجد بيانات</h4>
+                        <p class="text-gray-600">لا توجد بيانات لهذا الأسبوع</p>
                     </div>
                 `;
                 return;
             }
 
             const summariesHtml = customerSummaries.map((summary, index) => `
-                <div class="card hover:shadow-md transition-shadow mb-4">
-                    <div class="p-4 sm:p-6">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div class="flex items-center gap-4 flex-1 min-w-0">
-                                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-100 to-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="text-base sm:text-lg font-bold text-blue-600">${index + 1}</span>
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-4 transform hover:scale-105 transition-all duration-200">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                    ${index + 1}
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">${summary.customer.name}</h3>
-                                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                                        <span>جاموسي: ${MilkPortalUtils.formatNumber(summary.totalBuffalo)} كيلو</span>
-                                        <span>بقري: ${MilkPortalUtils.formatNumber(summary.totalCow)} كيلو</span>
+                                <div>
+                                    <h4 class="text-lg font-bold text-gray-800">${summary.name}</h4>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                        <span class="flex items-center gap-1">
+                                            <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                                            ${AppUtils.formatNumber(summary.buffaloPrice)} ج/كيلو
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                            ${AppUtils.formatNumber(summary.cowPrice)} ج/كيلو
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="text-right w-full sm:w-auto">
-                                <div class="text-xl sm:text-2xl font-bold text-green-600 mb-1">
-                                    ${MilkPortalUtils.formatNumber(summary.totalAmount)} جنيه
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-green-600">
+                                    ${AppUtils.formatCurrency(summary.totalAmount)}
                                 </div>
-                                <div class="text-xs text-gray-500 space-y-1">
-                                    <div>جاموسي: ${MilkPortalUtils.formatNumber(summary.buffaloAmount)} جنيه</div>
-                                    <div>بقري: ${MilkPortalUtils.formatNumber(summary.cowAmount)} جنيه</div>
-                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div class="bg-orange-50 rounded-lg p-3 text-center">
+                                <div class="text-lg font-bold text-orange-600">${AppUtils.formatNumber(summary.totalBuffalo)}</div>
+                                <div class="text-sm text-orange-500">كيلو جاموسي</div>
+                                <div class="text-xs text-gray-500 mt-1">${AppUtils.formatCurrency(summary.totalBuffalo * summary.buffaloPrice)}</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-3 text-center">
+                                <div class="text-lg font-bold text-blue-600">${AppUtils.formatNumber(summary.totalCow)}</div>
+                                <div class="text-sm text-blue-500">كيلو بقري</div>
+                                <div class="text-xs text-gray-500 mt-1">${AppUtils.formatCurrency(summary.totalCow * summary.cowPrice)}</div>
                             </div>
                         </div>
                     </div>
@@ -228,7 +333,6 @@
             container.innerHTML = summariesHtml;
         }
 
-        // تحديث المجاميع الكلية
         function updateGrandTotals() {
             const totals = customerSummaries.reduce((acc, summary) => ({
                 totalBuffalo: acc.totalBuffalo + summary.totalBuffalo,
@@ -236,94 +340,133 @@
                 totalAmount: acc.totalAmount + summary.totalAmount
             }), { totalBuffalo: 0, totalCow: 0, totalAmount: 0 });
 
-            document.getElementById('grandTotalBuffalo').textContent = `${MilkPortalUtils.formatNumber(totals.totalBuffalo)} كيلو`;
-            document.getElementById('grandTotalCow').textContent = `${MilkPortalUtils.formatNumber(totals.totalCow)} كيلو`;
-            document.getElementById('grandTotalAmount').textContent = `${MilkPortalUtils.formatNumber(totals.totalAmount)} جنيه`;
+            document.getElementById('grandTotalBuffalo').textContent = AppUtils.formatNumber(totals.totalBuffalo);
+            document.getElementById('grandTotalCow').textContent = AppUtils.formatNumber(totals.totalCow);
+            document.getElementById('grandTotalAmount').textContent = AppUtils.formatCurrency(totals.totalAmount);
         }
 
-        // عرض الأسابيع المؤرشفة
         function renderArchivedWeeks() {
             const container = document.getElementById('archivedWeeksContainer');
 
             if (archivedWeeks.length === 0) {
                 container.innerHTML = `
-                    <p class="text-gray-500 text-center py-4">لا توجد أسابيع مؤرشفة</p>
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 00-2 2v0a2 2 0 002 2h14a2 2 0 002-2v0a2 2 0 00-2-2"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-2">لا توجد أسابيع مؤرشفة</h4>
+                        <p class="text-gray-600">لم يتم أرشفة أي أسابيع بعد</p>
+                    </div>
                 `;
                 return;
             }
 
-            const weeksHtml = archivedWeeks.map(week => `
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 bg-gray-50 rounded-lg mb-2 gap-2">
-                    <div class="flex-1 min-w-0">
-                        <div class="font-medium text-sm sm:text-base">
-                            ${MilkPortalUtils.formatDisplayDate(week.startDate)} - ${MilkPortalUtils.formatDisplayDate(week.endDate)}
+            const weeksHtml = archivedWeeks.map(week => {
+                const totalAmount = week.summary.reduce((sum, customer) => sum + customer.totalAmount, 0);
+                const totalBuffalo = week.summary.reduce((sum, customer) => sum + customer.totalBuffalo, 0);
+                const totalCow = week.summary.reduce((sum, customer) => sum + customer.totalCow, 0);
+                
+                return `
+                    <div class="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <h4 class="font-bold text-gray-800">${DateUtils.formatDate(week.weekStart)} - ${DateUtils.formatDate(week.weekEnd)}</h4>
+                                <p class="text-sm text-gray-600">تم الأرشفة: ${DateUtils.formatDateTime(week.archivedAt)}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-bold text-green-600">${AppUtils.formatCurrency(totalAmount)}</div>
+                            </div>
                         </div>
-                        <div class="text-xs sm:text-sm text-gray-600">
-                            جاموسي: ${MilkPortalUtils.formatNumber(week.totalBuffalo)} • بقري: ${MilkPortalUtils.formatNumber(week.totalCow)}
+                        <div class="grid grid-cols-2 gap-4 text-center text-sm">
+                            <div class="bg-orange-100 rounded p-2">
+                                <div class="font-bold text-orange-600">${AppUtils.formatNumber(totalBuffalo)}</div>
+                                <div class="text-orange-500">كيلو جاموسي</div>
+                            </div>
+                            <div class="bg-blue-100 rounded p-2">
+                                <div class="font-bold text-blue-600">${AppUtils.formatNumber(totalCow)}</div>
+                                <div class="text-blue-500">كيلو بقري</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="text-xs sm:text-sm text-gray-500">
-                        ${new Date(week.createdAt).toLocaleDateString('ar-EG')}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             container.innerHTML = weeksHtml;
         }
 
-        // الانتقال للأسبوع السابق
         function goToPreviousWeek() {
-            const newWeekStart = new Date(currentWeekStart);
-            newWeekStart.setDate(newWeekStart.getDate() - 7);
-            currentWeekStart = MilkPortalUtils.formatDate(newWeekStart);
+            currentWeekStart = DateUtils.addWeeks(currentWeekStart, -1);
             loadWeekSummary();
+            vibrate(50);
         }
 
-        // الانتقال للأسبوع التالي
         function goToNextWeek() {
-            const newWeekStart = new Date(currentWeekStart);
-            newWeekStart.setDate(newWeekStart.getDate() + 7);
-            currentWeekStart = MilkPortalUtils.formatDate(newWeekStart);
+            currentWeekStart = DateUtils.addWeeks(currentWeekStart, 1);
             loadWeekSummary();
+            vibrate(50);
         }
 
-        // الانتقال للأسبوع الحالي
         function goToCurrentWeek() {
-            currentWeekStart = MilkPortalUtils.getWeekStart();
+            currentWeekStart = DateUtils.getWeekStart(DateUtils.getToday());
             loadWeekSummary();
+            vibrate(50);
         }
 
-        // تبديل عرض الأسابيع المؤرشفة
         function toggleArchivedWeeks() {
             const section = document.getElementById('archivedWeeksSection');
             showingArchived = !showingArchived;
             
             if (showingArchived) {
-                section.style.display = 'block';
-                section.classList.add('fade-in');
+                section.classList.remove('hidden');
             } else {
-                section.style.display = 'none';
+                section.classList.add('hidden');
             }
+            vibrate(50);
         }
 
-        // أرشفة الأسبوع الحالي
         async function archiveCurrentWeek() {
-            if (!MilkPortalUtils.confirm('هل تريد أرشفة الأسبوع الحالي وبدء أسبوع جديد؟')) {
-                return;
-            }
+            const confirmed = await AppUtils.confirm('هل تريد أرشفة الأسبوع الحالي وبدء أسبوع جديد؟\n\nسيتم حفظ جميع البيانات ومسح الجولات الحالية.');
+            
+            if (!confirmed) return;
 
             try {
-                await api.archiveWeek(currentWeekStart);
-                MilkPortalUtils.showNotification('تم أرشفة الأسبوع بنجاح', 'success');
+                const weekEnd = DateUtils.getWeekEnd(currentWeekStart);
+                const summary = storage.getCustomerFinancialSummary(currentWeekStart, weekEnd);
                 
-                // إعادة تحميل البيانات
-                await loadWeekSummary();
-                await loadArchivedWeeks();
+                if (summary.length === 0) {
+                    AppUtils.showToast('لا توجد بيانات لأرشفتها في هذا الأسبوع', 'warning');
+                    return;
+                }
+
+                const result = storage.archiveCurrentWeek(currentWeekStart, weekEnd, summary);
+                
+                if (result.success) {
+                    AppUtils.showToast('تم أرشفة الأسبوع بنجاح', 'success');
+                    
+                    // إعادة تحميل البيانات
+                    loadWeekSummary();
+                    loadArchivedWeeks();
+                } else {
+                    AppUtils.showToast(result.error || 'خطأ في أرشفة الأسبوع', 'error');
+                }
             } catch (error) {
                 console.error('Error archiving week:', error);
-                MilkPortalUtils.showNotification('خطأ في أرشفة الأسبوع', 'error');
+                AppUtils.showToast('خطأ في أرشفة الأسبوع', 'error');
             }
         }
+
+        // معالجة زر الرجوع
+        document.addEventListener("backbutton", function(e) {
+            if (showingArchived) {
+                toggleArchivedWeeks();
+                e.preventDefault();
+            } else {
+                navigateTo('index.html');
+                e.preventDefault();
+            }
+        }, false);
     </script>
 </body>
 </html>

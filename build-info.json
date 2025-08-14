@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "buildDate": "2024-01-15T10:30:00.000Z",
+  "platform": "android",
+  "cordovaVersion": "12.0.0",
+  "features": [
+    "customer-management",
+    "daily-rounds",
+    "financial-reports",
+    "offline-storage",
+    "arabic-rtl",
+    "drag-drop",
+    "auto-save"
+  ],
+  "minAndroidVersion": "5.1",
+  "targetAndroidVersion": "13.0",
+  "permissions": ["WRITE_EXTERNAL_STORAGE", "READ_EXTERNAL_STORAGE", "VIBRATE"],
+  "plugins": [
+    "cordova-plugin-whitelist",
+    "cordova-plugin-statusbar",
+    "cordova-plugin-device",
+    "cordova-plugin-splashscreen",
+    "cordova-plugin-file",
+    "cordova-plugin-dialogs",
+    "cordova-plugin-vibration",
+    "cordova-plugin-network-information"
+  ]
+}

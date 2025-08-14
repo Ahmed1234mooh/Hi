@@ -2,71 +2,56 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اللفة اليومية - دفتر زبائن اللبن</title>
-    <!-- Creating daily round management HTML page with drag-and-drop and auto-save -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; img-src 'self' data: content:;">
+    <title>الجولة اليومية - بوابة عملاء الألبان</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <link href="css/styles.css" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        'arabic': ['Cairo', 'sans-serif']
+                        'arabic': ['Tajawal', 'Arial', 'sans-serif']
                     }
                 }
             }
         }
     </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- SortableJS for drag and drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/app.css">
+    
     <style>
         .sortable-ghost {
             opacity: 0.5;
+            background: #f3f4f6;
         }
         .sortable-chosen {
             transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .customer-card {
             transition: all 0.2s ease;
         }
         .customer-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        .auto-save-indicator {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(34, 197, 94, 0.9);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1000;
-        }
-        .auto-save-indicator.show {
-            opacity: 1;
-        }
-        /* إضافة أنماط لمقبض السحب */
         .drag-handle {
             cursor: grab;
-            padding: 8px;
-            border-radius: 6px;
-            transition: background-color 0.2s;
-        }
-        .drag-handle:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            touch-action: none;
         }
         .drag-handle:active {
             cursor: grabbing;
         }
-        /* منع تحديد النص أثناء السحب */
-        .dragging * {
-            user-select: none;
-        }
-        /* تحسين مظهر حقول الإدخال */
         .quantity-input {
             transition: all 0.2s ease;
         }
@@ -74,153 +59,221 @@
             transform: scale(1.05);
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
+        .auto-save-indicator {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(34, 197, 94, 0.95);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-orange-50 to-purple-50 p-2 sm:p-4">
-    <div class="max-w-4xl mx-auto">
-        <!-- مؤشر الحفظ التلقائي -->
-        <div id="autoSaveIndicator" class="auto-save-indicator">
-            <i data-lucide="check" class="h-4 w-4 inline mr-1"></i>
-            تم الحفظ تلقائياً
-        </div>
-
-        <!-- الهيدر -->
-        <!-- تحسين تخطيط الهيدر للشاشات الصغيرة -->
-        <div class="mb-6">
-            <!-- الصف الأول: العنوان والأيقونة -->
-            <div class="text-center mb-4">
-                <div class="flex items-center justify-center gap-3 mb-2">
-                    <i id="roundIcon" class="h-8 w-8"></i>
-                    <h1 id="roundTitle" class="text-2xl sm:text-3xl font-bold text-gray-800"></h1>
-                </div>
-                <div class="flex items-center justify-center gap-4 text-gray-600 text-sm">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="calendar" class="h-4 w-4"></i>
-                        <span id="dayName"></span>
-                    </div>
-                    <input type="date" id="dateInput" class="input text-sm bg-white px-2 py-1">
-                </div>
+<body class="min-h-screen font-arabic">
+    <!-- شاشة التحميل -->
+    <div id="loading-screen" class="fixed inset-0 bg-gradient-to-br from-orange-600 to-purple-700 flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <div class="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
             </div>
-            
-            <!-- الصف الثاني: أزرار التنقل -->
-            <div class="flex items-center justify-between gap-2">
-                <button onclick="navigateTo('index.html')" class="btn btn-secondary flex items-center gap-2 text-sm px-3 py-2">
-                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                    <span class="hidden sm:inline">العودة للرئيسية</span>
-                    <span class="sm:hidden">العودة</span>
-                </button>
-                <button onclick="handleSave()" id="saveBtn" class="btn text-sm px-4 py-2">
-                    <i data-lucide="save" class="h-4 w-4 mr-2"></i>
-                    حفظ
-                </button>
-            </div>
-        </div>
-
-        <!-- المجاميع -->
-        <div class="card mb-6">
-            <div class="p-4 sm:p-6">
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                        <div id="totalBuffalo" class="text-xl sm:text-2xl font-bold text-orange-600">0.00</div>
-                        <div class="text-xs sm:text-sm text-gray-600">إجمالي الجاموسي (كيلو)</div>
-                    </div>
-                    <div>
-                        <div id="totalCow" class="text-xl sm:text-2xl font-bold text-blue-600">0.00</div>
-                        <div class="text-xs sm:text-sm text-gray-600">إجمالي البقري (كيلو)</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- قائمة الزبائن -->
-        <div class="card">
-            <div class="p-4 sm:p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 id="customersTitle" class="text-lg sm:text-xl font-semibold">الزبائن</h3>
-                    <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                        <i data-lucide="move" class="h-3 w-3"></i>
-                        اسحب لتغيير الترتيب
-                    </div>
-                </div>
-                
-                <!-- البحث -->
-                <div class="relative mb-4">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
-                    <input type="text" id="searchInput" placeholder="ابحث عن زبون..." class="input w-full pl-10 text-sm">
-                </div>
-
-                <div id="customersContainer">
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="loading mx-auto mb-4"></div>
-                        <p>جاري تحميل الزبائن...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- نصائح الاستخدام -->
-        <div class="mt-6 text-center text-xs sm:text-sm text-gray-500 space-y-1 px-2">
-            <p>يمكنك إدخال الكسور مثل: 0.25 (ربع) • 0.5 (نص) • 0.75 (ثلاثة أرباع) • 1.25 (كيلو وربع)</p>
-            <p class="text-green-600 font-medium">✓ يتم حفظ البيانات تلقائياً عند كل تغيير</p>
+            <h1 class="text-2xl font-bold mb-2" id="loadingTitle">الجولة اليومية</h1>
+            <p class="text-orange-100">جاري التحميل...</p>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/utils.js"></script>
+    <!-- مؤشر الحفظ التلقائي -->
+    <div id="autoSaveIndicator" class="auto-save-indicator">
+        <svg class="w-4 h-4 inline ml-1" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        تم الحفظ تلقائياً
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div id="main-content" class="hidden min-h-screen">
+        <!-- الهيدر -->
+        <header class="status-bar-padding" id="header">
+            <div class="p-4 shadow-lg">
+                <div class="max-w-md mx-auto">
+                    <div class="flex items-center justify-between mb-4">
+                        <button onclick="navigateTo('index.html')" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <div class="text-center">
+                            <div class="flex items-center justify-center gap-2 mb-1">
+                                <svg class="w-6 h-6 text-white" id="roundIcon" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                                <h1 class="text-lg font-bold text-white" id="roundTitle">الجولة الصباحية</h1>
+                            </div>
+                            <div class="flex items-center justify-center gap-2 text-sm text-white/80">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span id="dayName">اليوم</span>
+                            </div>
+                        </div>
+                        <button onclick="handleSave()" class="p-2 hover:bg-white/10 rounded-lg transition-colors" id="saveBtn">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- تحديد التاريخ -->
+                    <div class="flex justify-center">
+                        <input type="date" id="dateInput" class="bg-white/10 text-white placeholder-white/60 border border-white/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/30">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- المحتوى -->
+        <main class="p-4 safe-area-padding">
+            <div class="max-w-md mx-auto space-y-4">
+                <!-- المجاميع -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-center mb-4">المجاميع اليومية</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-orange-50 rounded-lg">
+                                <div class="text-2xl font-bold text-orange-600" id="totalBuffalo">0.00</div>
+                                <div class="text-sm text-orange-500 mt-1">إجمالي الجاموسي</div>
+                                <div class="text-xs text-gray-500">كيلو</div>
+                            </div>
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <div class="text-2xl font-bold text-blue-600" id="totalCow">0.00</div>
+                                <div class="text-sm text-blue-500 mt-1">إجمالي البقري</div>
+                                <div class="text-xs text-gray-500">كيلو</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- البحث -->
+                <div class="bg-white rounded-xl shadow-lg p-4">
+                    <div class="relative">
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="ابحث عن عميل..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <!-- قائمة العملاء -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold" id="customersTitle">العملاء (0)</h3>
+                            <div class="flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                </svg>
+                                اسحب المقبض لتغيير الترتيب
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="customersContainer" class="p-4">
+                        <div class="text-center py-8 text-gray-500">
+                            <div class="loading-spinner mx-auto mb-4"></div>
+                            <p>جاري تحميل العملاء...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- نصائح الاستخدام -->
+                <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-4">
+                    <h4 class="font-bold text-gray-800 mb-2">نصائح الاستخدام:</h4>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• يمكنك إدخال الكسور: 0.25 (ربع) • 0.5 (نص) • 0.75 (ثلاثة أرباع)</li>
+                        <li>• اسحب من المقبض (≡) لتغيير ترتيب العملاء</li>
+                        <li class="text-green-600 font-medium">• يتم حفظ البيانات تلقائياً عند كل تغيير</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Cordova Scripts -->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/cordova-init.js"></script>
+    <script type="text/javascript" src="js/storage.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    
     <script>
         let customers = [];
         let filteredCustomers = [];
         let roundType = 'morning';
-        let currentDate = MilkPortalUtils.formatDate();
+        let currentDate = DateUtils.getToday();
         let autoSaveTimeout = null;
         let sortable = null;
 
-        // تحميل البيانات عند بداية الصفحة
-        document.addEventListener('DOMContentLoaded', async function() {
-            lucide.createIcons();
-            
-            // الحصول على نوع اللفة والتاريخ من URL
-            const params = MilkPortalUtils.getUrlParams();
-            roundType = params.type || 'morning';
-            currentDate = params.date || MilkPortalUtils.formatDate();
+        function navigateTo(url) {
+            vibrate(50);
+            window.location.href = url;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // الحصول على نوع الجولة من URL
+            const urlParams = new URLSearchParams(window.location.search);
+            roundType = urlParams.get('round') || 'morning';
+            currentDate = urlParams.get('date') || DateUtils.getToday();
             
             setupUI();
-            await loadCustomers();
-            setupEventListeners();
+            
+            // إخفاء شاشة التحميل وتحميل البيانات
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                loadCustomers();
+                setupEventListeners();
+            }, 1000);
         });
 
-        // إعداد واجهة المستخدم
         function setupUI() {
+            const header = document.getElementById('header');
             const roundIcon = document.getElementById('roundIcon');
             const roundTitle = document.getElementById('roundTitle');
-            const saveBtn = document.getElementById('saveBtn');
+            const loadingTitle = document.getElementById('loadingTitle');
             const dateInput = document.getElementById('dateInput');
             
             if (roundType === 'morning') {
-                roundIcon.setAttribute('data-lucide', 'sunrise');
-                roundIcon.className = 'h-8 w-8 text-orange-500';
-                roundTitle.textContent = 'اللفة الصباحية';
-                saveBtn.className = 'btn btn-orange';
+                header.className = 'status-bar-padding bg-gradient-to-r from-orange-500 to-amber-600';
+                roundIcon.innerHTML = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+                roundTitle.textContent = 'الجولة الصباحية';
+                loadingTitle.textContent = 'الجولة الصباحية';
             } else {
-                roundIcon.setAttribute('data-lucide', 'sunset');
-                roundIcon.className = 'h-8 w-8 text-purple-500';
-                roundTitle.textContent = 'اللفة المسائية';
-                saveBtn.className = 'btn btn-purple';
+                header.className = 'status-bar-padding bg-gradient-to-r from-purple-500 to-indigo-600';
+                roundIcon.innerHTML = '<path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+                roundTitle.textContent = 'الجولة المسائية';
+                loadingTitle.textContent = 'الجولة المسائية';
             }
             
             dateInput.value = currentDate;
             updateDayName();
-            lucide.createIcons();
         }
 
-        // تحديث اسم اليوم
         function updateDayName() {
             const date = new Date(currentDate);
-            const dayName = MilkPortalUtils.dayNames[date.getDay()];
-            document.getElementById('dayName').textContent = dayName;
+            const dayName = DateUtils.getDayName(currentDate);
+            document.getElementById('dayName').textContent = dayName + ' - ' + DateUtils.formatDate(currentDate);
         }
 
-        // إعداد مستمعي الأحداث
         function setupEventListeners() {
             // تغيير التاريخ
             document.getElementById('dateInput').addEventListener('change', function(e) {
@@ -230,45 +283,53 @@
             });
 
             // البحث
-            document.getElementById('searchInput').addEventListener('input', MilkPortalUtils.debounce(function(e) {
+            document.getElementById('searchInput').addEventListener('input', AppUtils.debounce(function(e) {
                 filterCustomers(e.target.value);
             }, 300));
         }
 
-        // تحميل الزبائن
         async function loadCustomers() {
             try {
-                const [customersData, roundsData] = await Promise.all([
-                    api.getCustomers(),
-                    api.getDailyRounds(currentDate, roundType)
-                ]);
+                const allCustomers = storage.getCustomers();
+                const roundData = storage.getDailyRound(currentDate, roundType);
 
-                // دمج بيانات الزبائن مع الكميات المحفوظة
-                customers = customersData.map(customer => {
-                    const existingRound = roundsData.find(round => round.customerId === customer.id);
+                // دمج بيانات العملاء مع الكميات المحفوظة
+                customers = allCustomers.map(customer => {
+                    const existingData = roundData.customers?.find(c => c.id === customer.id);
                     return {
                         ...customer,
-                        buffalo: existingRound ? existingRound.buffalo : 0,
-                        cow: existingRound ? existingRound.cow : 0
+                        buffalo: existingData ? (existingData.buffalo || 0) : 0,
+                        cow: existingData ? (existingData.cow || 0) : 0,
+                        order: existingData ? (existingData.order || 0) : 0
                     };
                 });
 
+                // ترتيب العملاء حسب الترتيب المحفوظ
+                customers.sort((a, b) => (a.order || 0) - (b.order || 0));
+                
                 filteredCustomers = [...customers];
                 renderCustomers();
                 updateTotals();
             } catch (error) {
                 console.error('Error loading customers:', error);
-                MilkPortalUtils.showNotification('خطأ في تحميل البيانات', 'error');
+                AppUtils.showToast('خطأ في تحميل البيانات', 'error');
                 document.getElementById('customersContainer').innerHTML = `
                     <div class="text-center py-8 text-red-500">
-                        <p>خطأ في تحميل البيانات</p>
-                        <button onclick="loadCustomers()" class="btn btn-primary mt-4">إعادة المحاولة</button>
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-bold mb-2">خطأ في التحميل</h4>
+                        <p class="text-gray-600 mb-4">حدث خطأ أثناء تحميل البيانات</p>
+                        <button onclick="loadCustomers()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200">
+                            إعادة المحاولة
+                        </button>
                     </div>
                 `;
             }
         }
 
-        // تصفية الزبائن
         function filterCustomers(searchTerm) {
             if (!searchTerm.trim()) {
                 filteredCustomers = [...customers];
@@ -281,18 +342,25 @@
             updateTotals();
         }
 
-        // عرض قائمة الزبائن
         function renderCustomers() {
             const container = document.getElementById('customersContainer');
             const title = document.getElementById('customersTitle');
             
-            title.textContent = `الزبائن (${filteredCustomers.length})`;
+            title.textContent = `العملاء (${filteredCustomers.length})`;
 
             if (customers.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <p>لا يوجد زبائن مسجلين</p>
-                        <button onclick="navigateTo('customers.html')" class="btn btn-secondary mt-4">إضافة زبائن</button>
+                    <div class="text-center py-8">
+                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-800 mb-2">لا يوجد عملاء</h4>
+                        <p class="text-gray-600 mb-4">يجب إضافة عملاء أولاً</p>
+                        <button onclick="navigateTo('customers.html')" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2 px-4 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 transition-all duration-200">
+                            إضافة عملاء
+                        </button>
                     </div>
                 `;
                 return;
@@ -301,39 +369,49 @@
             if (filteredCustomers.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-gray-500">
-                        <p>لا يوجد زبائن مطابقين للبحث</p>
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <p>لا يوجد عملاء مطابقين للبحث</p>
                     </div>
                 `;
                 return;
             }
 
             const customersHtml = filteredCustomers.map((customer, index) => `
-                <div class="customer-card p-3 sm:p-4 bg-white rounded-lg border-2 border-solid mb-3" data-customer-id="${customer.id}">
-                    <div class="flex items-center gap-2 sm:gap-4">
-                        <!-- مقبض السحب المحدد -->
-                        <div class="drag-handle flex items-center gap-2" title="اسحب لتغيير الترتيب">
-                            <i data-lucide="grip-vertical" class="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"></i>
-                            <div class="w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-semibold text-xs sm:text-sm">
+                <div class="customer-card bg-gray-50 rounded-lg p-3 mb-3 border-2 border-dashed border-gray-200 hover:border-gray-300 transition-all duration-200" data-customer-id="${customer.id}">
+                    <div class="flex items-center gap-3">
+                        <!-- مقبض السحب -->
+                        <div class="drag-handle flex items-center gap-2 p-2 hover:bg-gray-200 rounded-lg transition-colors" title="اسحب لتغيير الترتيب">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                            </svg>
+                            <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 font-bold text-sm shadow-sm">
                                 ${index + 1}
                             </div>
                         </div>
 
-                        <!-- اسم الزبون -->
+                        <!-- اسم العميل -->
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">${customer.name}</h3>
+                            <h4 class="font-bold text-gray-800 truncate">${customer.name}</h4>
+                            <div class="text-xs text-gray-500 mt-1">
+                                <span>جاموسي: ${AppUtils.formatNumber(customer.buffaloPrice)} ج</span>
+                                <span class="mx-2">•</span>
+                                <span>بقري: ${AppUtils.formatNumber(customer.cowPrice)} ج</span>
+                            </div>
                         </div>
 
-                        <!-- حقول الإدخال المحسنة -->
-                        <div class="flex gap-2 sm:gap-4">
+                        <!-- حقول الكميات -->
+                        <div class="flex gap-3">
                             <!-- الجاموسي -->
-                            <div class="w-16 sm:w-20">
-                                <label class="text-xs text-orange-600 block mb-1">جاموسي</label>
+                            <div class="w-20">
+                                <label class="text-xs text-orange-600 block mb-1 font-medium">جاموسي</label>
                                 <input type="number" 
                                        step="0.25" 
                                        min="0" 
                                        value="${customer.buffalo || ''}" 
                                        placeholder="0"
-                                       class="quantity-input input text-center w-full text-xs sm:text-sm px-1 py-1"
+                                       class="quantity-input w-full text-center text-sm px-2 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                        data-customer-id="${customer.id}"
                                        data-type="buffalo"
                                        inputmode="decimal"
@@ -341,14 +419,14 @@
                             </div>
 
                             <!-- البقري -->
-                            <div class="w-16 sm:w-20">
-                                <label class="text-xs text-blue-600 block mb-1">بقري</label>
+                            <div class="w-20">
+                                <label class="text-xs text-blue-600 block mb-1 font-medium">بقري</label>
                                 <input type="number" 
                                        step="0.25" 
                                        min="0" 
                                        value="${customer.cow || ''}" 
                                        placeholder="0"
-                                       class="quantity-input input text-center w-full text-xs sm:text-sm px-1 py-1"
+                                       class="quantity-input w-full text-center text-sm px-2 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                        data-customer-id="${customer.id}"
                                        data-type="cow"
                                        inputmode="decimal"
@@ -360,9 +438,7 @@
             `).join('');
 
             container.innerHTML = `<div id="sortableContainer">${customersHtml}</div>`;
-            lucide.createIcons();
             
-            // إعداد السحب والإفلات
             setupSortable();
             setupInputListeners();
         }
@@ -377,19 +453,20 @@
                 animation: 150,
                 ghostClass: 'sortable-ghost',
                 chosenClass: 'sortable-chosen',
-                handle: '.drag-handle', // تقييد السحب على المقبض فقط
+                handle: '.drag-handle',
                 onStart: function(evt) {
                     evt.item.classList.add('dragging');
+                    vibrate(50);
                 },
                 onEnd: function(evt) {
                     evt.item.classList.remove('dragging');
                     
-                    // تحديث ترتيب الزبائن
+                    // تحديث ترتيب العملاء
                     const movedCustomer = filteredCustomers[evt.oldIndex];
                     filteredCustomers.splice(evt.oldIndex, 1);
                     filteredCustomers.splice(evt.newIndex, 0, movedCustomer);
                     
-                    // تحديث ترتيب الزبائن في المصفوفة الأساسية
+                    // تحديث ترتيب العملاء في المصفوفة الأساسية
                     filteredCustomers.forEach((customer, index) => {
                         customer.order = index;
                         const customerIndex = customers.findIndex(c => c.id === customer.id);
@@ -398,9 +475,9 @@
                         }
                     });
                     
-                    // حفظ الترتيب الجديد
-                    saveCustomerOrder();
                     renderCustomers();
+                    scheduleAutoSave();
+                    vibrate(30);
                 }
             });
         }
@@ -420,19 +497,6 @@
                     
                     // جدولة الحفظ التلقائي
                     scheduleAutoSave();
-                });
-
-                // منع ظهور لوحة المفاتيح على الأجهزة المحمولة عند التركيز
-                input.addEventListener('focus', function(e) {
-                    // إضافة readonly مؤقتاً لمنع لوحة المفاتيح
-                    if (window.innerWidth <= 768) { // للشاشات الصغيرة فقط
-                        e.target.setAttribute('readonly', 'readonly');
-                        
-                        // إزالة readonly بعد فترة قصيرة للسماح بالكتابة
-                        setTimeout(() => {
-                            e.target.removeAttribute('readonly');
-                        }, 100);
-                    }
                 });
 
                 // تحسين تجربة الكتابة
@@ -461,11 +525,21 @@
                         scheduleAutoSave();
                     }
                 });
+
+                // منع ظهور لوحة المفاتيح على الأجهزة المحمولة
+                input.addEventListener('focus', function(e) {
+                    if (AppUtils.getDeviceType() !== 'web') {
+                        e.target.setAttribute('readonly', 'readonly');
+                        setTimeout(() => {
+                            e.target.removeAttribute('readonly');
+                        }, 100);
+                    }
+                });
             });
         }
 
         function updateQuantityImmediate(customerId, type, value) {
-            const numValue = parseFloat(value) || 0;
+            const numValue = AppUtils.toNumber(value);
             
             // تحديث في المصفوفة المفلترة
             const filteredIndex = filteredCustomers.findIndex(c => c.id === customerId);
@@ -483,53 +557,44 @@
             updateTotals();
         }
 
-        // تحديث كمية الزبون (للاستخدام مع onchange)
-        function updateQuantity(customerId, type, value) {
-            updateQuantityImmediate(customerId, type, value);
-        }
-
-        // تحديث المجاميع
         function updateTotals() {
             const totalBuffalo = filteredCustomers.reduce((sum, customer) => sum + (customer.buffalo || 0), 0);
             const totalCow = filteredCustomers.reduce((sum, customer) => sum + (customer.cow || 0), 0);
             
-            document.getElementById('totalBuffalo').textContent = MilkPortalUtils.formatNumber(totalBuffalo);
-            document.getElementById('totalCow').textContent = MilkPortalUtils.formatNumber(totalCow);
+            document.getElementById('totalBuffalo').textContent = AppUtils.formatNumber(totalBuffalo);
+            document.getElementById('totalCow').textContent = AppUtils.formatNumber(totalCow);
         }
 
-        // جدولة الحفظ التلقائي
         function scheduleAutoSave() {
             if (autoSaveTimeout) {
                 clearTimeout(autoSaveTimeout);
             }
             
-            // تقليل وقت التأخير لحفظ أسرع
             autoSaveTimeout = setTimeout(async () => {
                 await autoSave();
-            }, 500); // تقليل من 1000ms إلى 500ms
+            }, 500);
         }
 
-        // الحفظ التلقائي
         async function autoSave() {
             try {
-                const promises = customers
-                    .filter(customer => customer.buffalo > 0 || customer.cow > 0)
-                    .map(customer => api.saveDailyRound({
-                        date: currentDate,
-                        type: roundType,
-                        customerId: customer.id,
+                const roundData = {
+                    customers: customers.map(customer => ({
+                        id: customer.id,
                         buffalo: customer.buffalo || 0,
-                        cow: customer.cow || 0
-                    }));
-                
-                await Promise.all(promises);
-                showAutoSaveIndicator();
+                        cow: customer.cow || 0,
+                        order: customer.order || 0
+                    }))
+                };
+
+                const result = storage.saveDailyRound(currentDate, roundType, roundData);
+                if (result.success) {
+                    showAutoSaveIndicator();
+                }
             } catch (error) {
                 console.error('Auto-save error:', error);
             }
         }
 
-        // عرض مؤشر الحفظ التلقائي
         function showAutoSaveIndicator() {
             const indicator = document.getElementById('autoSaveIndicator');
             indicator.classList.add('show');
@@ -538,37 +603,34 @@
             }, 2000);
         }
 
-        // حفظ ترتيب الزبائن
-        async function saveCustomerOrder() {
-            try {
-                const promises = customers.map(customer => 
-                    api.updateCustomer(customer.id, { order: customer.order })
-                );
-                await Promise.all(promises);
-            } catch (error) {
-                console.error('Error saving customer order:', error);
-            }
-        }
-
-        // معالجة الحفظ اليدوي
         async function handleSave() {
             const saveBtn = document.getElementById('saveBtn');
-            MilkPortalUtils.showLoading(saveBtn, 'جاري الحفظ...');
+            const originalContent = saveBtn.innerHTML;
+            
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<div class="loading-spinner"></div>';
 
             try {
                 await autoSave();
-                MilkPortalUtils.showNotification('تم حفظ البيانات بنجاح', 'success');
+                AppUtils.showToast('تم حفظ البيانات بنجاح', 'success');
                 
                 setTimeout(() => {
                     navigateTo('index.html');
                 }, 1000);
             } catch (error) {
                 console.error('Save error:', error);
-                MilkPortalUtils.showNotification('خطأ في حفظ البيانات', 'error');
+                AppUtils.showToast('خطأ في حفظ البيانات', 'error');
             } finally {
-                MilkPortalUtils.hideLoading(saveBtn, 'حفظ');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalContent;
             }
         }
+
+        // معالجة زر الرجوع
+        document.addEventListener("backbutton", function(e) {
+            navigateTo('index.html');
+            e.preventDefault();
+        }, false);
     </script>
 </body>
 </html>

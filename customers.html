@@ -2,204 +2,139 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الزبائن - دفتر زبائن اللبن</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; img-src 'self' data: content:;">
+    <title>إدارة العملاء - بوابة عملاء الألبان</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        'arabic': ['Cairo', 'sans-serif']
+                        'arabic': ['Tajawal', 'Arial', 'sans-serif']
                     }
                 }
             }
         }
     </script>
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-        .card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: none;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            min-height: 44px;
-            white-space: nowrap;
-        }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-        .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
-        .btn-secondary:hover { background: #e5e7eb; }
-        .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
-        .btn-green:hover { background: linear-gradient(135deg, #16a34a, #15803d); }
-        .btn-red { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .btn-red:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); }
-        
-        .input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-        .input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
-        }
-        
-        /* تحسين تصميم المودال للتخطيط المتجاوب */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 1rem;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            width: 100%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-        }
-        
-        .loading {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* تحسين التخطيط المتجاوب */
-        @media (max-width: 640px) {
-            .modal-content {
-                padding: 1.5rem;
-                margin: 1rem;
-            }
-            .btn {
-                padding: 0.875rem 1rem;
-                font-size: 0.875rem;
-            }
-        }
-    </style>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/app.css">
 </head>
-<body class="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-    <!-- تحسين التخطيط العام والحاوي الرئيسي -->
-    <div class="min-h-screen flex flex-col">
-        <div class="flex-1 p-4 sm:p-6 lg:p-8">
-            <div class="max-w-6xl mx-auto">
-                <!-- الهيدر -->
-                <!-- تحسين تخطيط الهيدر للشاشات الصغيرة -->
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 sm:mb-8">
-                    <button onclick="navigateTo('index.html')" class="btn btn-secondary self-start">
-                        <i data-lucide="arrow-right" class="h-4 w-4"></i>
-                        العودة للرئيسية
-                    </button>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                            <i data-lucide="users" class="h-6 w-6 text-white"></i>
-                        </div>
-                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">إدارة الزبائن</h1>
-                    </div>
-                </div>
-
-                <!-- إضافة زبون جديد -->
-                <div class="card mb-6 sm:mb-8">
-                    <div class="p-6 sm:p-8">
-                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
-                            <i data-lucide="plus" class="h-5 w-5 text-green-600"></i>
-                            إضافة زبون جديد
-                        </h3>
-                        <button onclick="openAddModal()" class="btn btn-green">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            إضافة زبون
-                        </button>
-                    </div>
-                </div>
-
-                <!-- قائمة الزبائن -->
-                <div class="card">
-                    <div class="p-6 sm:p-8">
-                        <h3 class="text-xl font-semibold mb-6" id="customersTitle">قائمة الزبائن</h3>
-                        <div id="customersContainer">
-                            <div class="text-center py-12 text-gray-500">
-                                <div class="loading mx-auto mb-4"></div>
-                                <p>جاري تحميل الزبائن...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 min-h-screen font-arabic">
+    <!-- شاشة التحميل -->
+    <div id="loading-screen" class="fixed inset-0 bg-gradient-to-br from-green-600 to-emerald-700 flex items-center justify-center z-50">
+        <div class="text-center text-white">
+            <div class="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
+                <svg class="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
             </div>
+            <h1 class="text-2xl font-bold mb-2">إدارة العملاء</h1>
+            <p class="text-green-100">جاري التحميل...</p>
         </div>
     </div>
 
-    <!-- Modal إضافة زبون -->
-    <div id="addModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3 class="text-xl font-semibold mb-6 text-center">إضافة زبون جديد</h3>
-            <form id="addForm" onsubmit="handleAddCustomer(event)">
-                <div class="space-y-6">
-                    <div>
-                        <label for="addName" class="block text-sm font-medium mb-2">اسم الزبون</label>
-                        <input type="text" id="addName" class="input" placeholder="أدخل اسم الزبون" required>
+    <!-- المحتوى الرئيسي -->
+    <div id="main-content" class="hidden min-h-screen flex flex-col">
+        <!-- الهيدر -->
+        <header class="bg-gradient-to-r from-green-600 to-emerald-700 text-white p-4 shadow-lg status-bar-padding">
+            <div class="max-w-md mx-auto">
+                <div class="flex items-center justify-between">
+                    <button onclick="navigateTo('index.html')" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="text-center">
+                        <h1 class="text-xl font-bold">إدارة العملاء</h1>
+                        <p class="text-green-100 text-sm" id="customersCount">0 عميل</p>
                     </div>
-                    <!-- تحسين تخطيط حقول الأسعار للشاشات الصغيرة -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="addBuffaloPrice" class="block text-sm font-medium mb-2">سعر كيلو الجاموسي</label>
-                            <input type="number" id="addBuffaloPrice" class="input" step="0.25" min="0" placeholder="0">
-                        </div>
-                        <div>
-                            <label for="addCowPrice" class="block text-sm font-medium mb-2">سعر كيلو البقري</label>
-                            <input type="number" id="addCowPrice" class="input" step="0.25" min="0" placeholder="0">
+                    <button onclick="openAddModal()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- المحتوى -->
+        <main class="flex-1 p-4 safe-area-padding">
+            <div class="max-w-md mx-auto space-y-4">
+                <!-- بطاقة إضافة عميل جديد -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-4">
+                        <div class="flex items-center">
+                            <div class="bg-white/20 p-3 rounded-full ml-4">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-white">إضافة عميل جديد</h2>
+                                <p class="text-green-100 text-sm">أضف عميل جديد إلى قائمة العملاء</p>
+                            </div>
                         </div>
                     </div>
-                    <!-- تحسين تخطيط أزرار المودال -->
-                    <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                        <button type="submit" class="btn btn-primary flex-1" id="addSubmitBtn">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            إضافة
+                    <div class="p-4">
+                        <button onclick="openAddModal()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-md">
+                            إضافة عميل جديد
                         </button>
-                        <button type="button" onclick="closeAddModal()" class="btn btn-secondary flex-1">
-                            <i data-lucide="x" class="h-4 w-4"></i>
+                    </div>
+                </div>
+
+                <!-- قائمة العملاء -->
+                <div id="customersContainer">
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p>جاري تحميل العملاء...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal إضافة عميل -->
+    <div id="addModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">إضافة عميل جديد</h3>
+                <button onclick="closeAddModal()" class="p-2 hover:bg-gray-100 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="addForm" onsubmit="handleAddCustomer(event)">
+                <div class="space-y-4">
+                    <div class="form-group">
+                        <label for="addName" class="block text-sm font-medium mb-2">اسم العميل</label>
+                        <input type="text" id="addName" class="form-control" placeholder="أدخل اسم العميل" required>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label for="addBuffaloPrice" class="block text-sm font-medium mb-2">سعر كيلو الجاموسي</label>
+                            <input type="number" id="addBuffaloPrice" class="form-control" step="0.25" min="0" placeholder="0.00" inputmode="decimal">
+                        </div>
+                        <div class="form-group">
+                            <label for="addCowPrice" class="block text-sm font-medium mb-2">سعر كيلو البقري</label>
+                            <input type="number" id="addCowPrice" class="form-control" step="0.25" min="0" placeholder="0.00" inputmode="decimal">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 transition-all duration-200" id="addSubmitBtn">
+                            إضافة العميل
+                        </button>
+                        <button type="button" onclick="closeAddModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200">
                             إلغاء
                         </button>
                     </div>
@@ -208,34 +143,42 @@
         </div>
     </div>
 
-    <!-- Modal تعديل زبون -->
-    <div id="editModal" class="modal" style="display: none;">
+    <!-- Modal تعديل عميل -->
+    <div id="editModal" class="modal hidden">
         <div class="modal-content">
-            <h3 class="text-xl font-semibold mb-6 text-center">تعديل الزبون</h3>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold">تعديل العميل</h3>
+                <button onclick="closeEditModal()" class="p-2 hover:bg-gray-100 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
             <form id="editForm" onsubmit="handleEditCustomer(event)">
                 <input type="hidden" id="editId">
-                <div class="space-y-6">
-                    <div>
-                        <label for="editName" class="block text-sm font-medium mb-2">اسم الزبون</label>
-                        <input type="text" id="editName" class="input" placeholder="أدخل اسم الزبون" required>
+                <div class="space-y-4">
+                    <div class="form-group">
+                        <label for="editName" class="block text-sm font-medium mb-2">اسم العميل</label>
+                        <input type="text" id="editName" class="form-control" placeholder="أدخل اسم العميل" required>
                     </div>
+                    
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
+                        <div class="form-group">
                             <label for="editBuffaloPrice" class="block text-sm font-medium mb-2">سعر كيلو الجاموسي</label>
-                            <input type="number" id="editBuffaloPrice" class="input" step="0.25" min="0" placeholder="0">
+                            <input type="number" id="editBuffaloPrice" class="form-control" step="0.25" min="0" placeholder="0.00" inputmode="decimal">
                         </div>
-                        <div>
+                        <div class="form-group">
                             <label for="editCowPrice" class="block text-sm font-medium mb-2">سعر كيلو البقري</label>
-                            <input type="number" id="editCowPrice" class="input" step="0.25" min="0" placeholder="0">
+                            <input type="number" id="editCowPrice" class="form-control" step="0.25" min="0" placeholder="0.00" inputmode="decimal">
                         </div>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                        <button type="submit" class="btn btn-primary flex-1" id="editSubmitBtn">
-                            <i data-lucide="save" class="h-4 w-4"></i>
-                            حفظ
+                    
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200" id="editSubmitBtn">
+                            حفظ التغييرات
                         </button>
-                        <button type="button" onclick="closeEditModal()" class="btn btn-secondary flex-1">
-                            <i data-lucide="x" class="h-4 w-4"></i>
+                        <button type="button" onclick="closeEditModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200">
                             إلغاء
                         </button>
                     </div>
@@ -245,25 +188,25 @@
     </div>
 
     <!-- Modal تأكيد الحذف -->
-    <div id="deleteModal" class="modal" style="display: none;">
+    <div id="deleteModal" class="modal hidden">
         <div class="modal-content">
             <div class="text-center">
                 <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="trash-2" class="h-8 w-8 text-red-600"></i>
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
                 </div>
-                <h3 class="text-xl font-semibold mb-4">تأكيد الحذف</h3>
+                <h3 class="text-xl font-bold mb-4">تأكيد الحذف</h3>
                 <p class="text-gray-600 mb-6">
-                    هل أنت متأكد من حذف الزبون "<span id="deleteCustomerName" class="font-semibold"></span>"؟
+                    هل أنت متأكد من حذف العميل "<span id="deleteCustomerName" class="font-bold text-red-600"></span>"؟
                     <br>
-                    <span class="text-sm text-red-600">سيتم حذف جميع البيانات المرتبطة بهذا الزبون.</span>
+                    <span class="text-sm text-red-500">سيتم حذف جميع البيانات المرتبطة بهذا العميل.</span>
                 </p>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button onclick="confirmDelete()" class="btn btn-red flex-1" id="deleteConfirmBtn">
-                        <i data-lucide="trash-2" class="h-4 w-4"></i>
-                        حذف
+                <div class="flex gap-3">
+                    <button onclick="confirmDelete()" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-lg font-medium hover:from-red-600 hover:to-red-700 transition-all duration-200" id="deleteConfirmBtn">
+                        حذف العميل
                     </button>
-                    <button onclick="closeDeleteModal()" class="btn btn-secondary flex-1">
-                        <i data-lucide="x" class="h-4 w-4"></i>
+                    <button onclick="closeDeleteModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200">
                         إلغاء
                     </button>
                 </div>
@@ -271,143 +214,170 @@
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/utils.js"></script>
+    <!-- Cordova Scripts -->
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/cordova-init.js"></script>
+    <script type="text/javascript" src="js/storage.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
+    
     <script>
         let customers = [];
         let customerToDelete = null;
 
-        // Navigation function
         function navigateTo(url) {
+            vibrate(50);
             window.location.href = url;
         }
 
-        // تحميل الزبائن عند بداية الصفحة
-        document.addEventListener('DOMContentLoaded', async function() {
-            lucide.createIcons();
-            await loadCustomers();
+        document.addEventListener('DOMContentLoaded', function() {
+            // إخفاء شاشة التحميل
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                loadCustomers();
+            }, 1000);
         });
 
-        // تحميل قائمة الزبائن
         async function loadCustomers() {
             try {
-                customers = await api.getCustomers();
+                customers = storage.getCustomers();
                 renderCustomers();
+                updateCustomersCount();
             } catch (error) {
                 console.error('Error loading customers:', error);
-                showNotification('خطأ في تحميل الزبائن', 'error');
+                AppUtils.showToast('خطأ في تحميل العملاء', 'error');
                 document.getElementById('customersContainer').innerHTML = `
-                    <div class="text-center py-12 text-red-500">
-                        <i data-lucide="alert-circle" class="h-12 w-12 mx-auto mb-4"></i>
-                        <p class="mb-4">خطأ في تحميل الزبائن</p>
-                        <button onclick="loadCustomers()" class="btn btn-primary">إعادة المحاولة</button>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
-        }
-
-        // عرض قائمة الزبائن
-        function renderCustomers() {
-            const container = document.getElementById('customersContainer');
-            const title = document.getElementById('customersTitle');
-            
-            title.textContent = `قائمة الزبائن (${customers.length})`;
-
-            if (customers.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-gray-500">
-                        <i data-lucide="users" class="h-16 w-16 mx-auto mb-4 opacity-50"></i>
-                        <h4 class="text-lg font-semibold mb-2">لا يوجد زبائن مسجلين</h4>
-                        <p class="text-sm mb-4">اضغط على "إضافة زبون" لبدء إضافة الزبائن</p>
-                        <button onclick="openAddModal()" class="btn btn-green">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            إضافة أول زبون
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-bold text-red-600 mb-2">خطأ في التحميل</h4>
+                        <p class="text-gray-600 mb-4">حدث خطأ أثناء تحميل قائمة العملاء</p>
+                        <button onclick="loadCustomers()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200">
+                            إعادة المحاولة
                         </button>
                     </div>
                 `;
-                lucide.createIcons();
+            }
+        }
+
+        function renderCustomers() {
+            const container = document.getElementById('customersContainer');
+
+            if (customers.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-800 mb-2">لا يوجد عملاء</h4>
+                        <p class="text-gray-600 mb-6">ابدأ بإضافة أول عميل لك</p>
+                        <button onclick="openAddModal()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 transition-all duration-200 shadow-md">
+                            إضافة أول عميل
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
             const customersHtml = customers.map((customer, index) => `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 bg-white rounded-lg border hover:shadow-md transition-all duration-200 mb-4">
-                    <div class="flex items-center gap-4 mb-4 sm:mb-0">
-                        <div class="w-10 h-10 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center text-green-600 font-bold text-sm">
-                            ${index + 1}
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-gray-800 text-lg">${customer.name}</h4>
-                            <div class="text-sm text-gray-500 mt-1">
-                                <span class="inline-flex items-center gap-1">
-                                    <i data-lucide="circle" class="h-3 w-3 fill-orange-500 text-orange-500"></i>
-                                    جاموسي: ${customer.buffaloPrice} ج
-                                </span>
-                                <span class="mx-2">•</span>
-                                <span class="inline-flex items-center gap-1">
-                                    <i data-lucide="circle" class="h-3 w-3 fill-blue-500 text-blue-500"></i>
-                                    بقري: ${customer.cowPrice} ج
-                                </span>
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-4 transform hover:scale-105 transition-all duration-200">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4 space-x-reverse">
+                                <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                    ${index + 1}
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-gray-800">${customer.name}</h4>
+                                    <div class="flex items-center space-x-4 space-x-reverse text-sm text-gray-600 mt-1">
+                                        <span class="flex items-center">
+                                            <div class="w-3 h-3 bg-orange-500 rounded-full ml-1"></div>
+                                            جاموسي: ${AppUtils.formatNumber(customer.buffaloPrice)} ج
+                                        </span>
+                                        <span class="flex items-center">
+                                            <div class="w-3 h-3 bg-blue-500 rounded-full ml-1"></div>
+                                            بقري: ${AppUtils.formatNumber(customer.cowPrice)} ج
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2 space-x-reverse">
+                                <button onclick="openEditModal('${customer.id}')" class="p-3 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                <button onclick="openDeleteModal('${customer.id}', '${customer.name}')" class="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                    </div>
-                    <div class="flex gap-2 self-end sm:self-center">
-                        <button onclick="openEditModal('${customer.id}')" class="btn btn-secondary p-3" title="تعديل">
-                            <i data-lucide="edit" class="h-4 w-4"></i>
-                        </button>
-                        <button onclick="openDeleteModal('${customer.id}', '${customer.name}')" class="btn btn-secondary p-3 text-red-600 hover:text-red-700 hover:bg-red-50" title="حذف">
-                            <i data-lucide="trash-2" class="h-4 w-4"></i>
-                        </button>
                     </div>
                 </div>
             `).join('');
 
-            container.innerHTML = `<div class="space-y-0">${customersHtml}</div>`;
-            lucide.createIcons();
+            container.innerHTML = customersHtml;
         }
 
-        // فتح modal إضافة زبون
+        function updateCustomersCount() {
+            const count = customers.length;
+            document.getElementById('customersCount').textContent = `${count} عميل`;
+        }
+
+        // Modal functions
         function openAddModal() {
-            document.getElementById('addModal').style.display = 'flex';
+            document.getElementById('addModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('addName').focus(), 100);
+            vibrate(50);
         }
 
-        // إغلاق modal إضافة زبون
         function closeAddModal() {
-            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('addModal').classList.add('hidden');
             document.getElementById('addForm').reset();
         }
 
-        // معالجة إضافة زبون جديد
         async function handleAddCustomer(event) {
             event.preventDefault();
             
-            const name = document.getElementById('addName').value.trim();
-            const buffaloPrice = parseFloat(document.getElementById('addBuffaloPrice').value) || 0;
-            const cowPrice = parseFloat(document.getElementById('addCowPrice').value) || 0;
+            const name = AppUtils.sanitizeText(document.getElementById('addName').value);
+            const buffaloPrice = AppUtils.toNumber(document.getElementById('addBuffaloPrice').value);
+            const cowPrice = AppUtils.toNumber(document.getElementById('addCowPrice').value);
             
             if (!name) {
-                showNotification('يرجى إدخال اسم الزبون', 'error');
+                AppUtils.showToast('يرجى إدخال اسم العميل', 'error');
                 return;
             }
 
             const submitBtn = document.getElementById('addSubmitBtn');
-            showLoading(submitBtn, 'جاري الإضافة...');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> جاري الإضافة...';
 
             try {
-                await api.addCustomer(name, buffaloPrice, cowPrice);
-                showNotification('تم إضافة الزبون بنجاح', 'success');
-                closeAddModal();
-                await loadCustomers();
+                const result = storage.addCustomer({ name, buffaloPrice, cowPrice });
+                if (result.success) {
+                    AppUtils.showToast('تم إضافة العميل بنجاح', 'success');
+                    closeAddModal();
+                    loadCustomers();
+                } else {
+                    AppUtils.showToast(result.error || 'خطأ في إضافة العميل', 'error');
+                }
             } catch (error) {
                 console.error('Error adding customer:', error);
-                showNotification('خطأ في إضافة الزبون', 'error');
+                AppUtils.showToast('خطأ في إضافة العميل', 'error');
             } finally {
-                hideLoading(submitBtn, 'إضافة');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         }
 
-        // فتح modal تعديل زبون
         function openEditModal(customerId) {
             const customer = customers.find(c => c.id === customerId);
             if (!customer) return;
@@ -417,118 +387,88 @@
             document.getElementById('editBuffaloPrice').value = customer.buffaloPrice;
             document.getElementById('editCowPrice').value = customer.cowPrice;
             
-            document.getElementById('editModal').style.display = 'flex';
+            document.getElementById('editModal').classList.remove('hidden');
             setTimeout(() => document.getElementById('editName').focus(), 100);
+            vibrate(50);
         }
 
-        // إغلاق modal تعديل زبون
         function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editModal').classList.add('hidden');
             document.getElementById('editForm').reset();
         }
 
-        // معالجة تعديل زبون
         async function handleEditCustomer(event) {
             event.preventDefault();
             
             const id = document.getElementById('editId').value;
-            const name = document.getElementById('editName').value.trim();
-            const buffaloPrice = parseFloat(document.getElementById('editBuffaloPrice').value) || 0;
-            const cowPrice = parseFloat(document.getElementById('editCowPrice').value) || 0;
+            const name = AppUtils.sanitizeText(document.getElementById('editName').value);
+            const buffaloPrice = AppUtils.toNumber(document.getElementById('editBuffaloPrice').value);
+            const cowPrice = AppUtils.toNumber(document.getElementById('editCowPrice').value);
             
             if (!name) {
-                showNotification('يرجى إدخال اسم الزبون', 'error');
+                AppUtils.showToast('يرجى إدخال اسم العميل', 'error');
                 return;
             }
 
             const submitBtn = document.getElementById('editSubmitBtn');
-            showLoading(submitBtn, 'جاري الحفظ...');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="loading-spinner"></div> جاري الحفظ...';
 
             try {
-                await api.updateCustomer(id, { name, buffaloPrice, cowPrice });
-                showNotification('تم تحديث الزبون بنجاح', 'success');
-                closeEditModal();
-                await loadCustomers();
+                const result = storage.updateCustomer(id, { name, buffaloPrice, cowPrice });
+                if (result.success) {
+                    AppUtils.showToast('تم تحديث العميل بنجاح', 'success');
+                    closeEditModal();
+                    loadCustomers();
+                } else {
+                    AppUtils.showToast(result.error || 'خطأ في تحديث العميل', 'error');
+                }
             } catch (error) {
                 console.error('Error updating customer:', error);
-                showNotification('خطأ في تحديث الزبون', 'error');
+                AppUtils.showToast('خطأ في تحديث العميل', 'error');
             } finally {
-                hideLoading(submitBtn, 'حفظ');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
         }
 
-        // فتح modal تأكيد الحذف
         function openDeleteModal(customerId, customerName) {
             customerToDelete = customerId;
             document.getElementById('deleteCustomerName').textContent = customerName;
-            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('deleteModal').classList.remove('hidden');
+            vibrate(100);
         }
 
-        // إغلاق modal تأكيد الحذف
         function closeDeleteModal() {
-            document.getElementById('deleteModal').style.display = 'none';
+            document.getElementById('deleteModal').classList.add('hidden');
             customerToDelete = null;
         }
 
-        // تأكيد حذف الزبون
         async function confirmDelete() {
             if (!customerToDelete) return;
 
             const confirmBtn = document.getElementById('deleteConfirmBtn');
-            showLoading(confirmBtn, 'جاري الحذف...');
+            const originalText = confirmBtn.textContent;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<div class="loading-spinner"></div> جاري الحذف...';
 
             try {
-                await api.deleteCustomer(customerToDelete);
-                showNotification('تم حذف الزبون بنجاح', 'success');
-                closeDeleteModal();
-                await loadCustomers();
+                const result = storage.deleteCustomer(customerToDelete);
+                if (result.success) {
+                    AppUtils.showToast('تم حذف العميل بنجاح', 'success');
+                    closeDeleteModal();
+                    loadCustomers();
+                } else {
+                    AppUtils.showToast(result.error || 'خطأ في حذف العميل', 'error');
+                }
             } catch (error) {
                 console.error('Error deleting customer:', error);
-                showNotification('خطأ في حذف الزبون', 'error');
+                AppUtils.showToast('خطأ في حذف العميل', 'error');
             } finally {
-                hideLoading(confirmBtn, 'حذف');
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
             }
-        }
-
-        // Utility functions
-        function showNotification(message, type = 'info') {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
-            
-            if (type === 'success') {
-                notification.className += ' bg-green-500 text-white';
-            } else if (type === 'error') {
-                notification.className += ' bg-red-500 text-white';
-            } else {
-                notification.className += ' bg-blue-500 text-white';
-            }
-            
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-            
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
-        }
-
-        function showLoading(button, text) {
-            button.disabled = true;
-            button.innerHTML = `<div class="loading"></div> ${text}`;
-        }
-
-        function hideLoading(button, text) {
-            button.disabled = false;
-            button.innerHTML = text;
         }
 
         // إغلاق المودال عند الضغط خارجه
@@ -548,6 +488,21 @@
                 closeDeleteModal();
             }
         });
+
+        document.addEventListener("backbutton", function(e) {
+            const modals = document.querySelectorAll('.modal:not(.hidden)');
+            if (modals.length > 0) {
+                // إغلاق المودال المفتوح
+                closeAddModal();
+                closeEditModal();
+                closeDeleteModal();
+                e.preventDefault();
+            } else {
+                // الرجوع للصفحة الرئيسية
+                navigateTo('index.html');
+                e.preventDefault();
+            }
+        }, false);
     </script>
 </body>
 </html>
